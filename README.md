@@ -1,0 +1,2 @@
+# SistemadeVentasTienda
+Para tienda
