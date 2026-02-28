@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Escamilla B. Wilson · POS</title>
+  <!-- Font Awesome 6 (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts: Inter modern sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #f3f6fc;
+      color: #1a2639;
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* main container */
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px -10px rgba(0,20,50,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* header */
+    .top-bar {
+      background: linear-gradient(98deg, #0b2b40 0%, #1a4b6d 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .brand .sub {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      display: flex;
+      gap: 20px;
+      margin-top: 4px;
+    }
+    .brand .sub i {
+      margin-right: 6px;
+    }
+    .dolar-bcv {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(4px);
+      padding: 10px 20px;
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .dolar-bcv i {
+      font-size: 1.4rem;
+      color: #ffd966;
+    }
+    .dolar-bcv span:last-child {
+      font-size: 1.3rem;
+      background: #0f2a3b;
+      padding: 4px 12px;
+      border-radius: 40px;
+    }
+
+    /* tab navigation */
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      background: white;
+      border-bottom: 1px solid #e2eaf2;
+      padding: 8px 16px 0;
+      gap: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4b5f73;
+      border-radius: 30px 30px 0 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn i {
+      font-size: 1.2rem;
+    }
+    .tab-btn:hover {
+      background: #eef4fa;
+      color: #0b2b40;
+    }
+    .tab-btn.active {
+      color: #0f3b5c;
+      border-bottom: 3px solid #1a4b6d;
+      background: #f8fcff;
+    }
+
+    /* main content area */
+    .tab-pane {
+      display: none;
+      padding: 24px;
+      background: #fbfdff;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* ventas layout: two columns */
+    .ventas-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* products panel */
+    .products-panel {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.02);
+      border: 1px solid #e9edf4;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #f2f6fb;
+      border-radius: 50px;
+      padding: 8px 18px;
+      margin-bottom: 20px;
+      border: 1px solid #dde5ef;
+    }
+    .search-box i {
+      color: #7f8fa4;
+      margin-right: 10px;
+    }
+    .search-box input {
+      border: none;
+      background: transparent;
+      width: 100%;
+      font-size: 1rem;
+      outline: none;
+    }
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .product-table th {
+      text-align: left;
+      padding: 12px 6px;
+      font-weight: 600;
+      color: #4b5f73;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #d9e2ec;
+    }
+    .product-table td {
+      padding: 12px 6px;
+      border-bottom: 1px solid #eef2f6;
+      vertical-align: middle;
+    }
+    .product-row.low-stock {
+      background-color: #ffebee;
+      border-left: 5px solid #c62828;
+      font-weight: 500;
+    }
+    .product-row.low-stock td:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+    .product-row:hover {
+      background: #f4f9ff;
+      cursor: pointer;
+    }
+    .price-bs {
+      font-weight: 700;
+      color: #1f5e3a;
+    }
+    .add-control {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .add-control input {
+      width: 60px;
+      padding: 6px 8px;
+      border: 1px solid #ccd9e9;
+      border-radius: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .add-btn {
+      background: #0b2b40;
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .add-btn:hover {
+      background: #1f5e7a;
+    }
+
+    /* cart panel (nota de venta) */
+    .cart-panel {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.02);
+      border: 1px solid #e9edf4;
+      position: relative;
+    }
+    .cart-panel::after {
+      content: "NOTA DE VENTA";
+      position: absolute;
+      bottom: 30px;
+      right: 20px;
+      font-size: 4rem;
+      font-weight: 800;
+      color: rgba(200, 212, 230, 0.12);
+      pointer-events: none;
+      transform: rotate(-5deg);
+      z-index: 0;
+    }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      color: #0b2b40;
+      position: relative;
+      z-index: 2;
+    }
+    .cart-items {
+      max-height: 280px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      border-bottom: 1px dashed #bdc9db;
+      position: relative;
+      z-index: 2;
+    }
+    .cart-item-row {
+      display: grid;
+      grid-template-columns: 2.5fr 0.8fr 1fr 1fr 0.4fr;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      padding: 8px 0;
+      border-bottom: 1px solid #eef2f6;
+    }
+    .cart-item-row input {
+      width: 70px;
+      padding: 4px 6px;
+      border: 1px solid #cbd6e6;
+      border-radius: 14px;
+      text-align: center;
+    }
+    .remove-item {
+      color: #b71c1c;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .cart-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 16px 0;
+      position: relative;
+      z-index: 2;
+    }
+    .field-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .field-row label {
+      font-weight: 600;
+      min-width: 110px;
+      color: #2c3f58;
+    }
+    .field-row input, .field-row select, .field-row textarea {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid #d0ddea;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      background: white;
+    }
+    .field-row textarea {
+      border-radius: 16px;
+      resize: vertical;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 1.2rem;
+      background: #e1eefa;
+      padding: 12px 16px;
+      border-radius: 40px;
+      margin: 16px 0 10px;
+    }
+    .btn-cobrar {
+      background: #1b5e3a;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 18px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      border: 1px solid #146b3a;
+      letter-spacing: 1px;
+    }
+    .btn-cobrar:hover {
+      background: #0f472b;
+    }
+
+    /* modal simple para historial */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 32px;
+      max-width: 500px;
+      width: 90%;
+      padding: 30px;
+      box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+    }
+    .modal-content h3 {
+      margin-bottom: 16px;
+      color: #0b2b40;
+    }
+    .history-list {
+      list-style: none;
+    }
+    .history-list li {
+      padding: 12px;
+      background: #f4f8ff;
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+
+    /* otras pestañas (simuladas) */
+    .placeholder-tab {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      border: 1px solid #e2eaf2;
+      color: #1f3a57;
+    }
+    .table-mini {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 20px;
+    }
+    .table-mini th, .table-mini td {
+      padding: 12px 8px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .badge {
+      background: #ffcd6b;
+      padding: 4px 12px;
+      border-radius: 60px;
+      font-weight: 600;
+    }
+    .btn-excel {
+      background: #2f6d4a;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #3b556e;
+      font-weight: 500;
+    }
+    footer i {
+      color: #25D366;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- HEADER with company & dollar -->
+  <div class="top-bar">
+    <div class="brand">
+      <h1>Escamilla B. Wilson M.</h1>
+      <div class="sub">
+        <span><i class="fas fa-map-pin"></i> Valencia, Edo. Carabobo</span>
+        <span><i class="fas fa-phone-alt"></i> 0414-4372956 / 0412-4749513</span>
+      </div>
+    </div>
+    <div class="dolar-bcv" id="dolarWidget">
+      <i class="fas fa-dollar-sign"></i>
+      <span>BCV oficial</span>
+      <span id="dolarValue">cargando...</span>
+    </div>
+  </div>
+
+  <!-- TABS navigation -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" data-tab="ventas"><i class="fas fa-shopping-cart"></i> Ventas</button>
+    <button class="tab-btn" data-tab="almacen"><i class="fas fa-boxes"></i> Almacén</button>
+    <button class="tab-btn" data-tab="fiados"><i class="fas fa-hand-holding-usd"></i> Fiados</button>
+    <button class="tab-btn" data-tab="cierres"><i class="fas fa-chart-line"></i> Cierre / Reportes</button>
+    <button class="tab-btn" data-tab="clientes"><i class="fas fa-users"></i> Clientes</button>
+    <button class="tab-btn" data-tab="proveedores"><i class="fas fa-truck"></i> Proveedores</button>
+  </div>
+
+  <!-- VENTAS PANE -->
+  <div id="ventas-pane" class="tab-pane active">
+    <div class="ventas-grid">
+      <!-- izquierda: productos -->
+      <div class="products-panel">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchProduct" placeholder="Buscar por nombre...">
+        </div>
+        <table class="product-table" id="productTable">
+          <thead>
+            <tr><th>Producto</th><th>Stock</th><th>Precio $</th><th>Precio Bs</th><th>Agregar</th></tr>
+          </thead>
+          <tbody id="productTableBody">
+            <!-- JS dinámico -->
+          </tbody>
+        </table>
+        <p style="margin-top:12px;font-size:0.8rem;color:#888;"><i class="fas fa-info-circle"></i> Click en fila para ver historial</p>
+      </div>
+
+      <!-- derecha: carrito / nota de venta -->
+      <div class="cart-panel">
+        <div class="cart-header">
+          <span><i class="fas fa-receipt"></i> Nota de venta</span>
+          <span id="itemCount">0</span>
+        </div>
+        <div class="cart-items" id="cartItemsContainer"></div>
+
+        <div class="cart-fields">
+          <div class="field-row"><label>Vendedor:</label><input type="text" id="vendedorInput" placeholder="Nombre"></div>
+          <div class="field-row"><label>Cliente:</label><input type="text" id="clienteInput" placeholder="Nombre (opcional)"></div>
+          <div class="field-row"><label>Teléfono (WhatsApp):</label><input type="tel" id="telefonoInput" placeholder="0412-1234567"></div>
+          <div class="field-row"><label>Dirección / Zona:</label><textarea id="direccionInput" rows="1" placeholder="Urb. ..."></textarea></div>
+          <div class="field-row"><label>Método pago:</label>
+            <select id="metodoPago">
+              <option>Efectivo</option><option>Pago móvil</option><option>Divisas</option><option>Biopago</option>
+              <option>Transferencia</option><option>Fiado Crédito</option><option>Binance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="total-row">
+          <span>Total $</span>
+          <span id="totalUSD">0.00</span>
+        </div>
+        <div class="total-row" style="background:#d0e2c9; margin-top: 0;">
+          <span>Total Bs</span>
+          <span id="totalBS">0,00</span>
+        </div>
+
+        <button class="btn-cobrar" id="cobrarBtn"><i class="fab fa-whatsapp"></i> COBRAR Y ENVIAR NOTA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTRAS PESTAÑAS (simuladas con diseño básico) -->
+  <div id="almacen-pane" class="tab-pane">
+    <div class="placeholder-tab">
+      <h2><i class="fas fa-warehouse"></i> Gestión de Stock</h2>
+      <p>Productos, fotos, categorías, código automático, fecha de ingreso. (Demo)</p>
+      <table class="table-mini">
+        <tr><th>Código</th><th>Producto</th><th>Categoría</th><th>Stock</th><th>Foto</th></tr>
+        <tr><td>A-001</td><td>Arroz Primor</td><td>Alimentos</td><td>67</td><td><i class="fas fa-image"></i></td></tr>
+        <tr><td>A-002</td><td>Harina Pan</td><td>Alimentos</td><td>24</td><td><i class="fas fa-image"></i></td></tr>
+      </table>
+      <button class="btn-excel"><i class="fas fa-download"></i> Descargar Excel inventario</button>
+    </div>
+  </div>
+
+  <div id="fiados-pane" class="tab-pane">
+    <div class="placeholder-tab">
+      <h2><i class="fas fa-hand-holding-heart"></i> Cuentas por Cobrar</h2>
+      <table class="table-mini">
+        <tr><th>Deudor</th><th>Teléfono</th><th>Producto</th><th>Deuda $</th><th>Estado</th><th>Acción</th></tr>
+        <tr><td>JHON</td><td>04244525765</td><td>Harina Pan (x3)</td><td>$3.60</td><td>Pendiente</td><td><button class="badge">Pagar</button></td></tr>
+      </table>
+      <button class="btn-excel"><i class="fas fa-file-excel"></i> Descargar Excel fiados</button>
+    </div>
+  </div>
+
+  <div id="cierres-pane" class="tab-pane">
+    <div class="placeholder-tab">
+      <h2><i class="fas fa-cash-register"></i> Cierre de caja / Reportes</h2>
+      <p>Responsable: <input placeholder="Nombre"></p>
+      <button style="background:#b33; color:white; padding:12px 24px; border:none; border-radius:40px;"><i class="fas fa-power-off"></i> CERRAR TURNO (demo)</button>
+      <h3 style="margin-top:24px;">Ventas turno actual</h3>
+      <table class="table-mini">
+        <tr><th>Hora</th><th>Vendedor</th><th>Detalle</th><th>Total $</th></tr>
+        <tr><td>12:15</td><td>Cajero</td><td>Arroz (2), Harina (1)</td><td>$4.20</td></tr>
+      </table>
+      <button class="btn-excel"><i class="fas fa-download"></i> Ventas de hoy</button>
+      <button class="btn-excel"><i class="fas fa-download"></i> Inventario hoy</button>
+    </div>
+  </div>
+
+  <div id="clientes-pane" class="tab-pane">
+    <div class="placeholder-tab">
+      <h2><i class="fas fa-address-book"></i> Clientes</h2>
+      <table class="table-mini">
+        <tr><th>Cliente</th><th>Teléfono</th><th>Deuda</th><th>Compras</th></tr>
+        <tr style="background:#ffe5e5;"><td>JHON</td><td>0424-4525765</td><td style="color:red;">$7.50</td><td>3 compras</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div id="proveedores-pane" class="tab-pane">
+    <div class="placeholder-tab">
+      <h2><i class="fas fa-parachute-box"></i> Proveedores</h2>
+      <p>Registro de proveedores, compras y deudas (demo)</p>
+    </div>
+  </div>
+
+  <!-- Modal historial producto -->
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <h3><i class="fas fa-history"></i> Historial de salidas</h3>
+      <ul class="history-list" id="historyList">
+        <li>16/1/2026 - Cliente: Maria - 2 unid. - $3.00</li>
+        <li>15/1/2026 - Cliente: Jhon - 1 unid. - $1.50</li>
+      </ul>
+      <button style="margin-top:16px;padding:8px 20px;" onclick="document.getElementById('historyModal').style.display='none'">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <i class="fas fa-crown"></i> Nexus Marketing · 0424-4525765 · Asesoría experta
+</footer>
+
+<script>
+  (function() {
+    // ------- DATOS GLOBALES -------
+    let dollarRate = 62.5; // fallback
+
+    // productos base
+    let products = [
+      { id: 1, name: 'Arroz Primor 900 gr', stock: 67, price: 1.50, category: 'Alimentos' },
+      { id: 2, name: 'Harina Pan 900 gr', stock: 24, price: 1.20, category: 'Alimentos' },
+      { id: 3, name: 'Azúcar 1kg', stock: 5, price: 0.90, category: 'Alimentos' },
+      { id: 4, name: 'Leche 1L', stock: 12, price: 1.10, category: 'Lácteos' },
+      { id: 5, name: 'Pasta 500g', stock: 6, price: 0.85, category: 'Alimentos' }  // justo en alerta
+    ];
+
+    // carrito: { productId, name, quantity, unitPrice }
+    let cart = [];
+
+    // ----- FUNCIONES DE VISTA -----
+    const dolarSpan = document.getElementById('dolarValue');
+    const productTbody = document.getElementById('productTableBody');
+    const cartContainer = document.getElementById('cartItemsContainer');
+    const totalUSDspan = document.getElementById('totalUSD');
+    const totalBSspan = document.getElementById('totalBS');
+    const itemCountSpan = document.getElementById('itemCount');
+
+    // referencias de inputs
+    const searchInput = document.getElementById('searchProduct');
+
+    // dólar API
+    async function fetchDollar() {
+      try {
+        const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+        const data = await res.json();
+        dollarRate = data.precio;
+        dolarSpan.innerText = `Bs ${dollarRate.toFixed(2)}`;
+        renderProducts();
+        updateCartDisplay(); // actualiza precios bs
+      } catch (e) {
+        dolarSpan.innerText = 'Bs 62.50 (offline)';
+        dollarRate = 62.5;
+        renderProducts();
+      }
+    }
+    fetchDollar();
+    setInterval(fetchDollar, 300000); // 5 min
+
+    // render productos con filtro
+    function renderProducts() {
+      const filter = searchInput.value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(filter));
+      productTbody.innerHTML = '';
+      filtered.forEach(prod => {
+        const tr = document.createElement('tr');
+        tr.className = prod.stock <= 6 ? 'product-row low-stock' : 'product-row';
+        tr.dataset.id = prod.id;
+        // precio bs
+        const bsPrice = (prod.price * dollarRate).toFixed(2).replace('.', ',');
+        tr.innerHTML = `
+          <td>${prod.name}</td>
+          <td>${prod.stock}</td>
+          <td>$${prod.price.toFixed(2)}</td>
+          <td class="price-bs">Bs ${bsPrice}</td>
+          <td>
+            <div class="add-control">
+              <input type="number" min="1" max="${prod.stock}" value="1" id="qty-${prod.id}" step="1">
+              <button class="add-btn" data-id="${prod.id}"><i class="fas fa-plus"></i></button>
+            </div>
+          </td>
+        `;
+        // evento click en fila para historial (solo demo)
+        tr.addEventListener('click', (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+          document.getElementById('historyModal').style.display = 'flex';
+          // podríamos cambiar el contenido según producto, se deja estático
+        });
+        productTbody.appendChild(tr);
+      });
+
+      // Agregar evento a botones add después de render
+      document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const prodId = parseInt(btn.dataset.id);
+          const qtyInput = document.getElementById(`qty-${prodId}`);
+          let qty = parseInt(qtyInput.value);
+          const product = products.find(p => p.id === prodId);
+          if (!product) return;
+          if (qty > product.stock) qty = product.stock;
+          if (qty < 1) qty = 1;
+          // agregar al carrito (si ya existe, sumar cantidad)
+          const existing = cart.find(item => item.productId === prodId);
+          if (existing) {
+            existing.quantity = Math.min(existing.quantity + qty, product.stock);
+          } else {
+            cart.push({
+              productId: prodId,
+              name: product.name,
+              quantity: qty,
+              unitPrice: product.price
+            });
+          }
+          updateCartDisplay();
+          qtyInput.value = 1;
+        });
+      });
+    }
+
+    // render carrito
+    function updateCartDisplay() {
+      if (!cartContainer) return;
+      let html = '';
+      let totalUSD = 0;
+      cart.forEach((item, index) => {
+        const subtotal = item.quantity * item.unitPrice;
+        totalUSD += subtotal;
+        html += `
+          <div class="cart-item-row">
+            <span>${item.name}</span>
+            <input type="number" min="1" value="${item.quantity}" data-index="${index}" class="cart-qty" style="width:60px;">
+            <input type="number" step="0.01" value="${item.unitPrice.toFixed(2)}" data-index="${index}" class="cart-price" style="width:70px;">
+            <span>$${subtotal.toFixed(2)}</span>
+            <span class="remove-item" data-index="${index}"><i class="fas fa-trash-alt"></i></span>
+          </div>
+        `;
+      });
+      cartContainer.innerHTML = html || '<div style="padding:12px; text-align:center; color:#999;">Carrito vacío</div>';
+      
+      // eventos dinámicos para cantidad, precio, eliminar
+      document.querySelectorAll('.cart-qty').forEach(inp => {
+        inp.addEventListener('change', function() {
+          const idx = this.dataset.index;
+          let newQty = parseInt(this.value);
+          const prodId = cart[idx].productId;
+          const maxStock = products.find(p => p.id === prodId).stock;
+          if (newQty > maxStock) newQty = maxStock;
+          if (newQty < 1) newQty = 1;
+          cart[idx].quantity = newQty;
+          this.value = newQty;
+          updateCartDisplay();
+        });
+      });
+      document.querySelectorAll('.cart-price').forEach(inp => {
+        inp.addEventListener('change', function() {
+          const idx = this.dataset.index;
+          let newPrice = parseFloat(this.value);
+          if (newPrice < 0) newPrice = 0;
+          cart[idx].unitPrice = newPrice;
+          this.value = newPrice.toFixed(2);
+          updateCartDisplay();
+        });
+      });
+      document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const idx = this.dataset.index;
+          cart.splice(idx, 1);
+          updateCartDisplay();
+        });
+      });
+
+      // totales
+      totalUSD = cart.reduce((acc, i) => acc + i.quantity * i.unitPrice, 0);
+      totalUSDspan.innerText = totalUSD.toFixed(2);
+      const totalBs = totalUSD * dollarRate;
+      totalBSspan.innerText = totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      itemCountSpan.innerText = cart.reduce((acc,i)=>acc+i.quantity,0) + ' items';
+    }
+
+    // Cobrar
+    document.getElementById('cobrarBtn').addEventListener('click', function() {
+      if (cart.length === 0) { alert('Carrito vacío'); return; }
+      const cliente = document.getElementById('clienteInput').value || 'Cliente final';
+      const telefono = document.getElementById('telefonoInput').value;
+      const vendedor = document.getElementById('vendedorInput').value || 'Cajero';
+      const metodo = document.getElementById('metodoPago').value;
+      const direccion = document.getElementById('direccionInput').value;
+
+      // descontar stock
+      cart.forEach(item => {
+        const prod = products.find(p => p.id === item.productId);
+        if (prod) prod.stock -= item.quantity;
+      });
+
+      // construir mensaje whatsapp
+      let mensaje = `*Escamilla B. Wilson M.*\nValencia, Carabobo\nTel: 0414-4372956\n\nNOTA DE VENTA (agua marca)\n`;
+      mensaje += `Cliente: ${cliente}\nDirección: ${direccion}\n`;
+      cart.forEach(i => { mensaje += `- ${i.name} x${i.quantity}  $${i.unitPrice.toFixed(2)} c/u = $${(i.quantity*i.unitPrice).toFixed(2)}\n`; });
+      mensaje += `TOTAL: $${totalUSDspan.innerText}  |  Bs ${totalBSspan.innerText}\nMétodo: ${metodo}\nVendedor: ${vendedor}\nGracias por su compra.`;
+
+      if (telefono) {
+        let telLimpio = telefono.replace(/\D/g,'');
+        if (!telLimpio.startsWith('58')) telLimpio = '58' + telLimpio;
+        window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
+      } else {
+        alert('Número de WhatsApp no ingresado, pero se simuló venta');
+      }
+
+      // reiniciar carrito
+      cart = [];
+      updateCartDisplay();
+      renderProducts(); // actualiza stock en tabla
+    });
+
+    // Buscador
+    searchInput.addEventListener('input', renderProducts);
+
+    // Cambio de pestañas
+    const tabs = document.querySelectorAll('.tab-btn');
+    const panes = document.querySelectorAll('.tab-pane');
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        panes.forEach(p => p.classList.remove('active'));
+        document.getElementById(tabId+'-pane').classList.add('active');
+      });
+    });
+
+    // cerrar modal
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+      }
+    });
+
+    // inicial
+    renderProducts();
+    updateCartDisplay();
+  })();
+</script>
+
+<!-- peqeña mejora: precio editable desde carrito, low stock en rojo, todo funcional -->
+</body>
+</html>
