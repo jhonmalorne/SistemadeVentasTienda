@@ -9,7 +9,6 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        /* (mismos estilos que la versión anterior, se mantienen) */
         * {
             margin: 0;
             padding: 0;
@@ -268,7 +267,7 @@
             border-radius: 20px;
             font-size: 0.95rem;
         }
-        .whatsapp-btn {
+        .btn-concretar {
             background: #25D366;
             color: white;
             border: none;
@@ -282,22 +281,32 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
+            margin-top: 16px;
         }
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.5);
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
         }
         .modal-content {
             background: white;
             padding: 28px;
             border-radius: 32px;
-            max-width: 600px;
+            max-width: 500px;
             width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        .modal-content canvas {
+            max-width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 16px;
+            margin: 16px 0;
         }
         table {
             width: 100%;
@@ -378,7 +387,7 @@
     </header>
 
     <main>
-        <!-- SECCIÓN VENTAS -->
+        <!-- VENTAS -->
         <div id="ventas" class="section active">
             <div class="ventas-grid">
                 <div class="productos-lista">
@@ -391,7 +400,7 @@
                 </div>
                 <div class="nota-venta">
                     <h2><i class="fas fa-receipt"></i> Nota de Venta</h2>
-                    <div class="nota-membrete" id="membreteNota">
+                    <div class="nota-membrete">
                         <div class="membrete-header">Escamilla B. Wilson M.</div>
                         <div class="membrete-dir">Urb. Prebo · Valencia · 0414-4372956</div>
                     </div>
@@ -399,8 +408,8 @@
                     <div class="total-dolar" id="totalUSD">$ 0.00</div>
 
                     <div class="campo">
-                        <label>Cliente</label>
-                        <input type="text" id="clienteNombre" placeholder="Nombre completo">
+                        <label>Cliente <span style="color:#d32f2f;">*</span></label>
+                        <input type="text" id="clienteNombre" placeholder="Nombre completo" required>
                     </div>
                     <div class="campo">
                         <label>Dirección / Zona</label>
@@ -408,8 +417,8 @@
                         <small style="display:block; margin-top:4px;">+ agregar zona: <button onclick="agregarZonaPrompt()" style="background:none; border:none; color:#2563eb;">➕</button></small>
                     </div>
                     <div class="campo">
-                        <label>Teléfono WhatsApp</label>
-                        <input type="tel" id="telefonoWSP" placeholder="0412 3456789">
+                        <label>Teléfono WhatsApp <span style="color:#d32f2f;">*</span></label>
+                        <input type="tel" id="telefonoWSP" placeholder="0412 3456789" required>
                     </div>
                     <div class="campo">
                         <label>Vendedor</label>
@@ -427,12 +436,12 @@
                             <option>Binance</option>
                         </select>
                     </div>
-                    <button class="whatsapp-btn" onclick="enviarWhatsApp()"><i class="fab fa-whatsapp"></i> Enviar nota por WhatsApp</button>
+                    <button class="btn-concretar" onclick="concretarVenta()"><i class="fas fa-check-circle"></i> Concretar venta y enviar WhatsApp</button>
                 </div>
             </div>
         </div>
 
-        <!-- SECCIÓN ALMACÉN -->
+        <!-- ALMACÉN -->
         <div id="almacen" class="section">
             <h2><i class="fas fa-warehouse"></i> Control de Almacén</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
@@ -460,13 +469,13 @@
             </div>
         </div>
 
-        <!-- SECCIÓN FIADOS -->
+        <!-- FIADOS -->
         <div id="fiados" class="section">
             <h2>Cuentas por cobrar (Fiados) <button class="btn-excel" onclick="descargarExcel('fiados')">📥 Excel Fiados</button></h2>
             <div id="fiadosLista"></div>
         </div>
 
-        <!-- SECCIÓN CIERRE / REPORTES -->
+        <!-- CIERRE / REPORTES -->
         <div id="cierres" class="section">
             <h2>Reportes y cierre</h2>
             <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:25px;">
@@ -475,19 +484,17 @@
             </div>
             <table>
                 <thead><tr><th>Fecha/Hora</th><th>Producto</th><th>Cliente</th><th>Método pago</th><th>Vendedor</th><th>Total $</th></tr></thead>
-                <tbody id="reportesBody">
-                    <!-- se llenará vacío -->
-                </tbody>
+                <tbody id="reportesBody"></tbody>
             </table>
         </div>
 
-        <!-- SECCIÓN CLIENTES -->
+        <!-- CLIENTES -->
         <div id="clientes" class="section">
             <h2>Base de clientes</h2>
             <div id="clientesLista"></div>
         </div>
 
-        <!-- SECCIÓN PROVEEDORES -->
+        <!-- PROVEEDORES -->
         <div id="proveedores" class="section">
             <h2>Proveedores</h2>
             <div id="proveedoresLista"></div>
@@ -507,15 +514,27 @@
         </div>
     </div>
 
+    <!-- MODAL IMAGEN BOLETA -->
+    <div id="modalBoleta" class="modal">
+        <div class="modal-content">
+            <h3>🧾 Boleta de venta</h3>
+            <canvas id="boletaCanvas" width="400" height="500"></canvas>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:16px;">
+                <button onclick="descargarBoleta()" class="btn-excel">📥 Descargar imagen</button>
+                <button onclick="cerrarModalBoleta()" style="padding:8px 16px;">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ---------- BASES DE DATOS VACÍAS (desde cero) ----------
+        // ---------- BASES DE DATOS VACÍAS ----------
         let products = [];               // Productos en almacén
         let customers = [];              // Clientes
         let fiados = [];                 // Registro de fiados
         let proveedores = [];             // Proveedores
         let ventasHistoricas = [];        // Ventas realizadas
 
-        // Carrito de compra actual
+        // Carrito de compra actual (no descuenta stock hasta concretar)
         let carrito = [];
 
         // Tasa BCV
@@ -524,31 +543,24 @@
             fetch('https://ve.dolarapi.com/v1/dolares/oficial')
                 .then(r => r.json())
                 .then(data => {
-                    // La API puede devolver 'promedio' o 'precio' según el endpoint
                     tasaBCV = data.promedio || data.precio || 0;
                     document.getElementById('tasaDolar').innerText = `Bs. ${tasaBCV.toFixed(2)}`;
                 })
                 .catch(() => {
                     document.getElementById('tasaDolar').innerText = 'No disponible';
-                    console.warn('Error al obtener tasa BCV');
                 });
         }
         actualizarTasa();
-        setInterval(actualizarTasa, 300000); // cada 5 minutos
+        setInterval(actualizarTasa, 300000);
 
         // Mostrar secciones
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            // El botón que disparó el evento puede no estar disponible si se llama desde otro lado,
-            // por eso buscamos el botón con onclick que coincida.
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                if (btn.getAttribute('onclick')?.includes(id)) {
-                    btn.classList.add('active');
-                }
+                if (btn.getAttribute('onclick')?.includes(id)) btn.classList.add('active');
             });
-            // Actualizar vistas según la sección
             if (id === 'ventas') renderProductos();
             if (id === 'almacen') renderInventario();
             if (id === 'fiados') renderFiados();
@@ -557,7 +569,7 @@
             if (id === 'proveedores') renderProveedores();
         }
 
-        // ---------- FUNCIONES DE VENTAS ----------
+        // ---------- VENTAS ----------
         function renderProductos(filtro = '') {
             const container = document.getElementById('productosContainer');
             if (products.length === 0) {
@@ -566,7 +578,7 @@
             }
             const filtrados = products.filter(p => p.desc.toLowerCase().includes(filtro.toLowerCase()));
             if (filtrados.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">🔍 No se encontraron productos con ese nombre.</div>';
+                container.innerHTML = '<div class="mensaje-vacio">🔍 No se encontraron productos.</div>';
                 return;
             }
             container.innerHTML = filtrados.map(p => `
@@ -587,16 +599,14 @@
             const prod = products.find(p => p.id === id);
             const qty = parseInt(document.getElementById(`qty-${id}`).value) || 1;
             if (qty > prod.stock) { alert('Stock insuficiente'); return; }
+            // No se descuenta del stock aún, solo se agrega al carrito
             const existente = carrito.find(i => i.id === id);
             if (existente) {
                 existente.cant += qty;
             } else {
                 carrito.push({ id: prod.id, desc: prod.desc, price: prod.price, cant: qty });
             }
-            prod.stock -= qty; // descontar stock
             renderCarrito();
-            renderProductos(document.getElementById('buscarProducto').value);
-            syncProducts(); // para sincronización entre pestañas
         };
 
         function renderCarrito() {
@@ -613,7 +623,7 @@
             document.getElementById('totalUSD').innerText = `$ ${total.toFixed(2)}`;
         }
 
-        // Historial de producto (solo ventas registradas)
+        // Historial de producto
         window.verHistorial = (id) => {
             const prod = products.find(p => p.id === id);
             if (!prod) return;
@@ -629,30 +639,227 @@
 
         window.cerrarModal = () => document.getElementById('modalHistorial').style.display = 'none';
 
-        // Enviar WhatsApp
-        window.enviarWhatsApp = () => {
-            let tel = document.getElementById('telefonoWSP').value.replace(/\D/g,'');
-            if (!tel) { alert('Ingresa teléfono'); return; }
-            if (carrito.length === 0) { alert('Agrega productos al carrito'); return; }
-            let msj = `*NOTA DE VENTA - Escamilla B. Wilson M.*\n`;
-            msj += `Cliente: ${document.getElementById('clienteNombre').value || 'N/A'}\n`;
-            carrito.forEach(i => msj += `${i.desc} x${i.cant} = $${(i.price*i.cant).toFixed(2)}\n`);
-            msj += `Total: $${document.getElementById('totalUSD').innerText.replace('$','')}\n`;
-            msj += `Gracias por su compra.`;
-            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msj)}`, '_blank');
-        };
-
-        // Zonas (sugerencia)
+        // Zonas
         window.agregarZonaPrompt = () => {
             let zona = prompt('Nueva zona/dirección:');
             if (zona) document.getElementById('direccion').value = zona;
         };
 
-        // ---------- FUNCIONES DE ALMACÉN ----------
+        // ---------- CONCRETAR VENTA (corazón del sistema) ----------
+        window.concretarVenta = async function() {
+            // Validaciones
+            const cliente = document.getElementById('clienteNombre').value.trim();
+            const telefono = document.getElementById('telefonoWSP').value.trim();
+            const vendedor = document.getElementById('vendedor').value.trim() || 'Wilson M.';
+            const metodo = document.getElementById('metodoPago').value;
+            const direccion = document.getElementById('direccion').value.trim();
+
+            if (!cliente) { alert('Debes ingresar el nombre del cliente'); return; }
+            if (!telefono) { alert('Debes ingresar el teléfono para enviar la nota'); return; }
+            if (carrito.length === 0) { alert('No hay productos en el carrito'); return; }
+
+            // Verificar stock suficiente (puede haber cambiado desde que se agregó al carrito)
+            for (let item of carrito) {
+                const prod = products.find(p => p.id === item.id);
+                if (!prod || prod.stock < item.cant) {
+                    alert(`Stock insuficiente para ${item.desc}. Quedan ${prod?.stock || 0} unidades.`);
+                    return;
+                }
+            }
+
+            // Registrar venta en ventasHistoricas (fecha y hora actual)
+            const fecha = new Date();
+            const fechaStr = fecha.toLocaleString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+            let totalVenta = 0;
+            carrito.forEach(item => { totalVenta += item.price * item.cant; });
+
+            // Por cada producto, registramos un registro en ventasHistoricas (o uno por venta con detalle)
+            // Para simplificar, creamos un registro por cada línea de producto
+            carrito.forEach(item => {
+                ventasHistoricas.push({
+                    fecha: fechaStr,
+                    producto: item.desc,
+                    cliente: cliente,
+                    metodo: metodo,
+                    vendedor: vendedor,
+                    total: item.price * item.cant,
+                    codigo: item.id
+                });
+            });
+
+            // Descontar stock
+            carrito.forEach(item => {
+                const prod = products.find(p => p.id === item.id);
+                prod.stock -= item.cant;
+            });
+
+            // Manejo de clientes
+            let clienteExistente = customers.find(c => c.nombre.toLowerCase() === cliente.toLowerCase());
+            if (!clienteExistente) {
+                clienteExistente = { nombre: cliente, tel: telefono, deuda: 0, compras: [] };
+                customers.push(clienteExistente);
+            } else {
+                // Actualizar teléfono si es diferente
+                clienteExistente.tel = telefono;
+            }
+            // Agregar compra al cliente
+            clienteExistente.compras.push({
+                fecha: fechaStr,
+                productos: carrito.map(i => ({ desc: i.desc, cant: i.cant, precio: i.price })),
+                total: totalVenta,
+                metodo: metodo
+            });
+
+            // Si el método es Fiado Crédito, registrar en fiados
+            if (metodo === 'Fiado Crédito') {
+                // Podría ser un solo fiado por venta, o detallado. Lo hacemos por producto para simplificar
+                carrito.forEach(item => {
+                    fiados.push({
+                        deudor: cliente,
+                        tel: telefono,
+                        producto: item.desc,
+                        deudaUSD: item.price * item.cant,
+                        fecha: fechaStr,
+                        estado: 'Pendiente'
+                    });
+                });
+                // Actualizar deuda del cliente
+                clienteExistente.deuda = (clienteExistente.deuda || 0) + totalVenta;
+            }
+
+            // Guardar en localStorage
+            syncAll();
+
+            // Generar imagen de la boleta
+            generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, carrito, totalVenta, fechaStr);
+
+            // Enviar WhatsApp con el texto
+            let msj = `*NOTA DE VENTA - Escamilla B. Wilson M.*\n`;
+            msj += `Fecha: ${fechaStr}\n`;
+            msj += `Cliente: ${cliente}\n`;
+            msj += `Dirección: ${direccion || 'No especificada'}\n`;
+            carrito.forEach(i => msj += `${i.desc} x${i.cant} = $${(i.price*i.cant).toFixed(2)}\n`);
+            msj += `Total: $${totalVenta.toFixed(2)}\n`;
+            msj += `Método de pago: ${metodo}\n`;
+            msj += `Vendedor: ${vendedor}\n`;
+            msj += `Gracias por su compra.`;
+            const telClean = telefono.replace(/\D/g,'');
+            window.open(`https://wa.me/${telClean}?text=${encodeURIComponent(msj)}`, '_blank');
+
+            // Limpiar carrito
+            carrito = [];
+            renderCarrito();
+            renderProductos();
+            renderInventario();
+            renderFiados();
+            renderClientes();
+            renderReportes();
+        };
+
+        // Generar imagen de la boleta en canvas
+        function generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, items, total, fecha) {
+            const canvas = document.getElementById('boletaCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 400;
+            canvas.height = 500;
+
+            // Fondo blanco
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Marco
+            ctx.strokeStyle = '#0f3b5e';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(10, 10, canvas.width-20, canvas.height-20);
+
+            // Membrete
+            ctx.fillStyle = '#0f3b5e';
+            ctx.font = 'bold 18px Inter, sans-serif';
+            ctx.fillText('Escamilla B. Wilson M.', 30, 50);
+            ctx.font = '12px Inter';
+            ctx.fillStyle = '#4b5563';
+            ctx.fillText('Valencia · 0414-4372956', 30, 75);
+            ctx.fillText('Urb. Prebo', 30, 95);
+
+            // Marca de agua
+            ctx.globalAlpha = 0.1;
+            ctx.font = 'bold 40px Inter';
+            ctx.fillStyle = '#2c6e9c';
+            ctx.translate(150, 280);
+            ctx.rotate(-0.3);
+            ctx.fillText('NOTA DE VENTA', 0, 0);
+            ctx.rotate(0.3);
+            ctx.translate(-150, -280);
+            ctx.globalAlpha = 1;
+
+            // Línea separadora
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(20, 120);
+            ctx.lineTo(380, 120);
+            ctx.stroke();
+
+            // Datos de la venta
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 11px Inter';
+            ctx.fillText(`Fecha: ${fecha}`, 30, 145);
+            ctx.fillText(`Cliente: ${cliente}`, 30, 165);
+            ctx.fillText(`Tel: ${telefono}`, 30, 185);
+            ctx.fillText(`Dirección: ${direccion || 'N/A'}`, 30, 205);
+            ctx.fillText(`Vendedor: ${vendedor}`, 30, 225);
+            ctx.fillText(`Método: ${metodo}`, 30, 245);
+
+            // Tabla de productos
+            ctx.font = 'bold 10px Inter';
+            ctx.fillStyle = '#0f3b5e';
+            ctx.fillText('Producto', 30, 275);
+            ctx.fillText('Cant', 220, 275);
+            ctx.fillText('P/U', 270, 275);
+            ctx.fillText('Total', 320, 275);
+            ctx.strokeStyle = '#a0c4e2';
+            ctx.beginPath();
+            ctx.moveTo(20, 280);
+            ctx.lineTo(380, 280);
+            ctx.stroke();
+
+            let y = 295;
+            ctx.font = '10px Inter';
+            ctx.fillStyle = '#1e293b';
+            items.forEach(item => {
+                ctx.fillText(item.desc.substring(0, 18), 30, y);
+                ctx.fillText(item.cant.toString(), 230, y);
+                ctx.fillText('$'+item.price.toFixed(2), 270, y);
+                ctx.fillText('$'+(item.price*item.cant).toFixed(2), 320, y);
+                y += 18;
+            });
+
+            // Total
+            ctx.font = 'bold 14px Inter';
+            ctx.fillStyle = '#0b3b2c';
+            ctx.fillText(`TOTAL: $${total.toFixed(2)}`, 250, y+25);
+
+            // Mostrar modal con el canvas
+            document.getElementById('modalBoleta').style.display = 'flex';
+        }
+
+        window.cerrarModalBoleta = () => {
+            document.getElementById('modalBoleta').style.display = 'none';
+        };
+
+        window.descargarBoleta = () => {
+            const canvas = document.getElementById('boletaCanvas');
+            const link = document.createElement('a');
+            link.download = `boleta_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        };
+
+        // ---------- ALMACÉN ----------
         function renderInventario() {
             const container = document.getElementById('inventarioLista');
             if (products.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">📦 No hay productos registrados. Usa el formulario para agregar tu primer producto.</div>';
+                container.innerHTML = '<div class="mensaje-vacio">📦 No hay productos registrados.</div>';
                 return;
             }
             let html = '<table><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Precio $</th></tr>';
@@ -669,22 +876,14 @@
             let precio = parseFloat(document.getElementById('nuevoPrecio').value) || 0;
             if (stock < 0) stock = 0;
             if (precio < 0) precio = 0;
-            let newId = 'P' + Date.now().toString().slice(-6); // código único automático
-            products.push({ 
-                id: newId, 
-                desc: nombre, 
-                stock: stock, 
-                price: precio, 
-                cat: cat 
-            });
-            // Limpiar campos
+            let newId = 'P' + Date.now().toString().slice(-6);
+            products.push({ id: newId, desc: nombre, stock: stock, price: precio, cat: cat });
             document.getElementById('nuevoNombre').value = '';
             document.getElementById('nuevoStock').value = '10';
             document.getElementById('nuevoPrecio').value = '5.00';
             renderInventario();
-            renderProductos(); // actualiza vista ventas si está visible
-            syncProducts();
-            alert('Producto registrado con código ' + newId);
+            renderProductos();
+            syncAll();
         };
 
         window.agregarCategoriaPrompt = () => {
@@ -698,7 +897,7 @@
             }
         };
 
-        // ---------- FUNCIONES DE FIADOS ----------
+        // ---------- FIADOS ----------
         function renderFiados() {
             const container = document.getElementById('fiadosLista');
             if (fiados.length === 0) {
@@ -718,12 +917,12 @@
         window.pagarFiado = (deudor) => {
             let monto = prompt('Monto a pagar (parcial/total):', '0');
             if (monto && !isNaN(parseFloat(monto))) {
-                alert(`Pago de $${monto} aplicado a ${deudor} (simulado). En un sistema real se actualizaría la deuda.`);
-                // Aquí se podría modificar el registro de fiado
+                alert(`Pago de $${monto} aplicado a ${deudor} (simulado).`);
+                // En un sistema real se actualizaría el registro
             }
         };
 
-        // ---------- FUNCIONES DE REPORTES ----------
+        // ---------- REPORTES ----------
         function renderReportes() {
             const tbody = document.getElementById('reportesBody');
             if (ventasHistoricas.length === 0) {
@@ -733,11 +932,11 @@
             tbody.innerHTML = ventasHistoricas.map(v => `<tr><td>${v.fecha}</td><td>${v.producto}</td><td>${v.cliente}</td><td>${v.metodo}</td><td>${v.vendedor}</td><td>$${v.total.toFixed(2)}</td></tr>`).join('');
         }
 
-        // ---------- FUNCIONES DE CLIENTES ----------
+        // ---------- CLIENTES ----------
         function renderClientes() {
             const container = document.getElementById('clientesLista');
             if (customers.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">👥 No hay clientes registrados. Cuando realices ventas, se irán guardando.</div>';
+                container.innerHTML = '<div class="mensaje-vacio">👥 No hay clientes registrados.</div>';
                 return;
             }
             let html = '';
@@ -749,11 +948,11 @@
             container.innerHTML = html;
         }
 
-        // ---------- FUNCIONES DE PROVEEDORES ----------
+        // ---------- PROVEEDORES ----------
         function renderProveedores() {
             const container = document.getElementById('proveedoresLista');
             if (proveedores.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">🚚 No hay proveedores registrados. Puedes agregarlos manualmente (función pendiente).</div>';
+                container.innerHTML = '<div class="mensaje-vacio">🚚 No hay proveedores registrados.</div>';
                 return;
             }
             container.innerHTML = proveedores.map(p => `<div class="proveedor-item">${p.nombre} - ${p.contacto} | Deuda: $${(p.deuda || 0).toFixed(2)}</div>`).join('');
@@ -770,30 +969,28 @@
             alert(mensaje);
         };
 
-        // ---------- SINCRONIZACIÓN ENTRE PESTAÑAS (simulada con localStorage) ----------
-        function syncProducts() {
-            localStorage.setItem('productos', JSON.stringify(products));
-            localStorage.setItem('clientes', JSON.stringify(customers));
+        // ---------- SINCRONIZACIÓN LOCALSTORAGE ----------
+        function syncAll() {
+            localStorage.setItem('products', JSON.stringify(products));
+            localStorage.setItem('customers', JSON.stringify(customers));
             localStorage.setItem('fiados', JSON.stringify(fiados));
             localStorage.setItem('proveedores', JSON.stringify(proveedores));
             localStorage.setItem('ventasHistoricas', JSON.stringify(ventasHistoricas));
         }
 
-        // Cargar datos desde localStorage al iniciar (para simular persistencia entre recargas)
         function loadFromStorage() {
-            const storedProducts = localStorage.getItem('productos');
-            if (storedProducts) products = JSON.parse(storedProducts);
-            const storedCustomers = localStorage.getItem('clientes');
-            if (storedCustomers) customers = JSON.parse(storedCustomers);
-            const storedFiados = localStorage.getItem('fiados');
-            if (storedFiados) fiados = JSON.parse(storedFiados);
-            const storedProveedores = localStorage.getItem('proveedores');
-            if (storedProveedores) proveedores = JSON.parse(storedProveedores);
-            const storedVentas = localStorage.getItem('ventasHistoricas');
-            if (storedVentas) ventasHistoricas = JSON.parse(storedVentas);
+            const p = localStorage.getItem('products');
+            if (p) products = JSON.parse(p);
+            const c = localStorage.getItem('customers');
+            if (c) customers = JSON.parse(c);
+            const f = localStorage.getItem('fiados');
+            if (f) fiados = JSON.parse(f);
+            const pr = localStorage.getItem('proveedores');
+            if (pr) proveedores = JSON.parse(pr);
+            const v = localStorage.getItem('ventasHistoricas');
+            if (v) ventasHistoricas = JSON.parse(v);
         }
 
-        // Inicializar: cargar datos si existen y renderizar vistas
         loadFromStorage();
         renderProductos();
         renderCarrito();
@@ -803,14 +1000,12 @@
         renderClientes();
         renderProveedores();
 
-        // Escuchar cambios en localStorage (desde otra pestaña)
         window.addEventListener('storage', (e) => {
-            if (e.key === 'productos') products = JSON.parse(e.newValue) || [];
-            if (e.key === 'clientes') customers = JSON.parse(e.newValue) || [];
+            if (e.key === 'products') products = JSON.parse(e.newValue) || [];
+            if (e.key === 'customers') customers = JSON.parse(e.newValue) || [];
             if (e.key === 'fiados') fiados = JSON.parse(e.newValue) || [];
             if (e.key === 'proveedores') proveedores = JSON.parse(e.newValue) || [];
             if (e.key === 'ventasHistoricas') ventasHistoricas = JSON.parse(e.newValue) || [];
-            // Volver a renderizar la vista activa
             const active = document.querySelector('.section.active')?.id;
             if (active === 'ventas') renderProductos();
             if (active === 'almacen') renderInventario();
@@ -819,11 +1014,6 @@
             if (active === 'clientes') renderClientes();
             if (active === 'proveedores') renderProveedores();
         });
-
-        // Mejora: al cambiar productos, actualizar localStorage
-        // Ya se llama a syncProducts en agregarAlCarrito y registrarProducto
-        // También se podría llamar después de cada venta (cuando se finalice), pero eso requeriría un botón "Finalizar venta"
-        // Para no complicar la demo, se deja así.
     </script>
 </body>
 </html>
