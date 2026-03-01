@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>Punto de Venta · Escamilla B. Wilson M.</title>
-    <!-- Font Awesome (iconos) -->
+    <title>Punto de Venta · Escamilla B. Wilson M. (desde cero)</title>
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
+        /* (mismos estilos que la versión anterior, se mantienen) */
         * {
             margin: 0;
             padding: 0;
@@ -23,7 +24,6 @@
             display: flex;
             flex-direction: column;
         }
-        /* Encabezado principal */
         .header {
             display: flex;
             flex-wrap: wrap;
@@ -99,7 +99,6 @@
             font-size: 1.2rem;
             color: #0b3b2c;
         }
-        /* Área principal */
         main {
             background: white;
             border-radius: 32px;
@@ -108,14 +107,12 @@
             flex: 1;
             margin-bottom: 20px;
         }
-        /* Secciones (ocultas por defecto) */
         .section {
             display: none;
         }
         .section.active {
             display: block;
         }
-        /* Ventas: grid de dos columnas */
         .ventas-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
@@ -196,7 +193,6 @@
             gap: 5px;
             cursor: pointer;
         }
-        /* Carrito / Nota de venta */
         .nota-venta {
             background: #f0f7fa;
             border-radius: 24px;
@@ -287,7 +283,6 @@
             gap: 8px;
             cursor: pointer;
         }
-        /* modal historial */
         .modal {
             display: none;
             position: fixed;
@@ -304,7 +299,6 @@
             max-width: 600px;
             width: 90%;
         }
-        /* tablas genéricas */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -355,6 +349,12 @@
             background: #fee2e2;
             border-left: 8px solid #b91c1c;
         }
+        .mensaje-vacio {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -381,7 +381,6 @@
         <!-- SECCIÓN VENTAS -->
         <div id="ventas" class="section active">
             <div class="ventas-grid">
-                <!-- Panel izquierdo: productos -->
                 <div class="productos-lista">
                     <div class="buscador">
                         <input type="text" id="buscarProducto" placeholder="Buscar producto...">
@@ -390,7 +389,6 @@
                     <div id="productosContainer"></div>
                     <p style="margin-top: 16px; color: #2563eb;"><i class="fas fa-info-circle"></i> Haz clic en cualquier producto para ver su historial.</p>
                 </div>
-                <!-- Panel derecho: nota de venta / carrito -->
                 <div class="nota-venta">
                     <h2><i class="fas fa-receipt"></i> Nota de Venta</h2>
                     <div class="nota-membrete" id="membreteNota">
@@ -434,7 +432,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN ALMACÉN (simplificada pero completa) -->
+        <!-- SECCIÓN ALMACÉN -->
         <div id="almacen" class="section">
             <h2><i class="fas fa-warehouse"></i> Control de Almacén</h2>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
@@ -473,12 +471,12 @@
             <h2>Reportes y cierre</h2>
             <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:25px;">
                 <button class="btn-excel" onclick="descargarExcel('ventas')">📊 Reporte de Ventas (Excel)</button>
-                <button class="btn-excel" onclick="alert('Inventario del día: se descargaría Excel con membrete')">📦 Inventario hoy</button>
+                <button class="btn-excel" onclick="descargarExcel('inventario')">📦 Inventario hoy</button>
             </div>
             <table>
                 <thead><tr><th>Fecha/Hora</th><th>Producto</th><th>Cliente</th><th>Método pago</th><th>Vendedor</th><th>Total $</th></tr></thead>
                 <tbody id="reportesBody">
-                    <!-- datos mock -->
+                    <!-- se llenará vacío -->
                 </tbody>
             </table>
         </div>
@@ -510,29 +508,14 @@
     </div>
 
     <script>
-        // ---------- DATOS MOCK (simulación) ----------
-        let products = [
-            { id: 'P1001', desc: 'Morral Avengers', stock: 8, price: 25.50, cat: 'Morrales' },
-            { id: 'P1002', desc: 'Lonchera Frozen', stock: 3, price: 18.90, cat: 'Lonchera' },
-            { id: 'P1003', desc: 'Cartuchera dinosaurio', stock: 12, price: 7.25, cat: 'Útiles' },
-            { id: 'P1004', desc: 'Peluche Stitch 30cm', stock: 2, price: 15.00, cat: 'Peluches' },
-        ];
-        let customers = [
-            { nombre: 'María Pérez', tel: '0414-1234567', deuda: 0, compras: [] },
-            { nombre: 'Carlos Rojas', tel: '0412-9876543', deuda: 45.80, compras: [{prod:'Morral Avengers', monto:45.8, fecha:'2025-03-15'}] },
-        ];
-        let fiados = [
-            { deudor: 'Carlos Rojas', tel: '0412-9876543', producto: 'Morral Avengers', deudaUSD: 45.80, estado: 'Pendiente' },
-        ];
-        let proveedores = [
-            { nombre: 'Distribuidora Escolar C.A', contacto: '0416-5553322', deuda: 0 },
-        ];
-        let ventasHistoricas = [
-            { fecha: '2025-03-30 10:30', producto: 'Morral Avengers', cliente: 'María Pérez', metodo: 'Efectivo', vendedor: 'Wilson', total: 25.50 },
-            { fecha: '2025-03-30 11:15', producto: 'Peluche Stitch', cliente: 'Ana López', metodo: 'Pago móvil', vendedor: 'Ana', total: 15.00 },
-        ];
+        // ---------- BASES DE DATOS VACÍAS (desde cero) ----------
+        let products = [];               // Productos en almacén
+        let customers = [];              // Clientes
+        let fiados = [];                 // Registro de fiados
+        let proveedores = [];             // Proveedores
+        let ventasHistoricas = [];        // Ventas realizadas
 
-        // carrito
+        // Carrito de compra actual
         let carrito = [];
 
         // Tasa BCV
@@ -541,20 +524,31 @@
             fetch('https://ve.dolarapi.com/v1/dolares/oficial')
                 .then(r => r.json())
                 .then(data => {
+                    // La API puede devolver 'promedio' o 'precio' según el endpoint
                     tasaBCV = data.promedio || data.precio || 0;
                     document.getElementById('tasaDolar').innerText = `Bs. ${tasaBCV.toFixed(2)}`;
                 })
-                .catch(() => document.getElementById('tasaDolar').innerText = 'No disponible');
+                .catch(() => {
+                    document.getElementById('tasaDolar').innerText = 'No disponible';
+                    console.warn('Error al obtener tasa BCV');
+                });
         }
         actualizarTasa();
-        setInterval(actualizarTasa, 300000); // 5 min
+        setInterval(actualizarTasa, 300000); // cada 5 minutos
 
         // Mostrar secciones
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            event.target.closest('.nav-btn').classList.add('active');
+            // El botón que disparó el evento puede no estar disponible si se llama desde otro lado,
+            // por eso buscamos el botón con onclick que coincida.
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('onclick')?.includes(id)) {
+                    btn.classList.add('active');
+                }
+            });
+            // Actualizar vistas según la sección
             if (id === 'ventas') renderProductos();
             if (id === 'almacen') renderInventario();
             if (id === 'fiados') renderFiados();
@@ -563,10 +557,18 @@
             if (id === 'proveedores') renderProveedores();
         }
 
-        // Render productos en ventas
+        // ---------- FUNCIONES DE VENTAS ----------
         function renderProductos(filtro = '') {
             const container = document.getElementById('productosContainer');
+            if (products.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio">🧺 No hay productos en el almacén. Ve a "Almacén" y registra tu primer producto.</div>';
+                return;
+            }
             const filtrados = products.filter(p => p.desc.toLowerCase().includes(filtro.toLowerCase()));
+            if (filtrados.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio">🔍 No se encontraron productos con ese nombre.</div>';
+                return;
+            }
             container.innerHTML = filtrados.map(p => `
                 <div class="producto-item ${p.stock <= 6 ? 'alerta-stock' : ''}" onclick="verHistorial('${p.id}')">
                     <div class="producto-info">
@@ -580,9 +582,7 @@
                 </div>
             `).join('');
         }
-        document.getElementById('buscarProducto')?.addEventListener('input', (e) => renderProductos(e.target.value));
 
-        // Agregar al carrito
         window.agregarAlCarrito = (id) => {
             const prod = products.find(p => p.id === id);
             const qty = parseInt(document.getElementById(`qty-${id}`).value) || 1;
@@ -593,35 +593,47 @@
             } else {
                 carrito.push({ id: prod.id, desc: prod.desc, price: prod.price, cant: qty });
             }
-            prod.stock -= qty; // descontar (en sistema real se haría al finalizar)
+            prod.stock -= qty; // descontar stock
             renderCarrito();
             renderProductos(document.getElementById('buscarProducto').value);
+            syncProducts(); // para sincronización entre pestañas
         };
 
         function renderCarrito() {
             const container = document.getElementById('carritoItems');
             let total = 0;
-            container.innerHTML = carrito.map(item => {
-                total += item.price * item.cant;
-                return `<div class="item-carrito"><span>${item.desc} x${item.cant}</span><span>$${(item.price*item.cant).toFixed(2)}</span></div>`;
-            }).join('');
+            if (carrito.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio" style="padding:10px;">🛒 Carrito vacío</div>';
+            } else {
+                container.innerHTML = carrito.map(item => {
+                    total += item.price * item.cant;
+                    return `<div class="item-carrito"><span>${item.desc} x${item.cant}</span><span>$${(item.price*item.cant).toFixed(2)}</span></div>`;
+                }).join('');
+            }
             document.getElementById('totalUSD').innerText = `$ ${total.toFixed(2)}`;
         }
 
-        // Historial producto (mock)
+        // Historial de producto (solo ventas registradas)
         window.verHistorial = (id) => {
             const prod = products.find(p => p.id === id);
+            if (!prod) return;
             document.getElementById('modalProductoNombre').innerText = `Historial: ${prod.desc}`;
             const historial = ventasHistoricas.filter(v => v.producto === prod.desc);
-            document.getElementById('historialDetalle').innerHTML = historial.length ? historial.map(h => `<p>${h.fecha} - ${h.cliente} - $${h.total}</p>`).join('') : '<p>Sin ventas previas</p>';
+            if (historial.length === 0) {
+                document.getElementById('historialDetalle').innerHTML = '<p>📭 Este producto aún no tiene ventas.</p>';
+            } else {
+                document.getElementById('historialDetalle').innerHTML = historial.map(h => `<p>${h.fecha} - ${h.cliente} - $${h.total}</p>`).join('');
+            }
             document.getElementById('modalHistorial').style.display = 'flex';
         };
+
         window.cerrarModal = () => document.getElementById('modalHistorial').style.display = 'none';
 
-        // WhatsApp simulado
+        // Enviar WhatsApp
         window.enviarWhatsApp = () => {
             let tel = document.getElementById('telefonoWSP').value.replace(/\D/g,'');
             if (!tel) { alert('Ingresa teléfono'); return; }
+            if (carrito.length === 0) { alert('Agrega productos al carrito'); return; }
             let msj = `*NOTA DE VENTA - Escamilla B. Wilson M.*\n`;
             msj += `Cliente: ${document.getElementById('clienteNombre').value || 'N/A'}\n`;
             carrito.forEach(i => msj += `${i.desc} x${i.cant} = $${(i.price*i.cant).toFixed(2)}\n`);
@@ -630,85 +642,159 @@
             window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msj)}`, '_blank');
         };
 
-        // Zonas (simular)
+        // Zonas (sugerencia)
         window.agregarZonaPrompt = () => {
             let zona = prompt('Nueva zona/dirección:');
             if (zona) document.getElementById('direccion').value = zona;
         };
 
-        // ALMACÉN
+        // ---------- FUNCIONES DE ALMACÉN ----------
         function renderInventario() {
+            const container = document.getElementById('inventarioLista');
+            if (products.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio">📦 No hay productos registrados. Usa el formulario para agregar tu primer producto.</div>';
+                return;
+            }
             let html = '<table><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Precio $</th></tr>';
-            products.forEach(p => html += `<tr><td>${p.id}</td><td>${p.desc}</td><td>${p.stock}</td><td>$${p.price}</td></tr>`);
+            products.forEach(p => html += `<tr><td>${p.id}</td><td>${p.desc}</td><td>${p.stock}</td><td>$${p.price.toFixed(2)}</td></tr>`);
             html += '</table>';
-            document.getElementById('inventarioLista').innerHTML = html;
+            container.innerHTML = html;
         }
+
         window.registrarProducto = () => {
-            let nombre = document.getElementById('nuevoNombre').value;
+            let nombre = document.getElementById('nuevoNombre').value.trim();
+            if (!nombre) { alert('Debes escribir un nombre'); return; }
             let cat = document.getElementById('nuevaCategoria').value;
-            let stock = +document.getElementById('nuevoStock').value;
-            let precio = +document.getElementById('nuevoPrecio').value;
-            if (!nombre) return;
-            let newId = 'P' + Date.now().toString().slice(-6);
-            products.push({ id: newId, desc: nombre, stock: stock, price: precio, cat: cat });
+            let stock = parseInt(document.getElementById('nuevoStock').value) || 0;
+            let precio = parseFloat(document.getElementById('nuevoPrecio').value) || 0;
+            if (stock < 0) stock = 0;
+            if (precio < 0) precio = 0;
+            let newId = 'P' + Date.now().toString().slice(-6); // código único automático
+            products.push({ 
+                id: newId, 
+                desc: nombre, 
+                stock: stock, 
+                price: precio, 
+                cat: cat 
+            });
+            // Limpiar campos
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevoStock').value = '10';
+            document.getElementById('nuevoPrecio').value = '5.00';
             renderInventario();
-            alert('Producto registrado');
+            renderProductos(); // actualiza vista ventas si está visible
+            syncProducts();
+            alert('Producto registrado con código ' + newId);
         };
+
         window.agregarCategoriaPrompt = () => {
             let nueva = prompt('Nueva categoría:');
             if (nueva) {
                 let select = document.getElementById('nuevaCategoria');
                 let opt = document.createElement('option');
                 opt.text = nueva;
+                opt.value = nueva;
                 select.add(opt);
             }
         };
 
-        // FIADOS
+        // ---------- FUNCIONES DE FIADOS ----------
         function renderFiados() {
+            const container = document.getElementById('fiadosLista');
+            if (fiados.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio">✅ No hay fiados pendientes.</div>';
+                return;
+            }
             let html = '';
             fiados.forEach(f => {
                 html += `<div class="cliente-item ${f.estado === 'Pendiente' ? 'deudor-alerta' : ''}">
-                    <strong>${f.deudor}</strong> - ${f.tel}<br> Producto: ${f.producto} | Deuda: $${f.deudaUSD} | Estado: ${f.estado}
+                    <strong>${f.deudor}</strong> - ${f.tel}<br> Producto: ${f.producto} | Deuda: $${f.deudaUSD.toFixed(2)} | Estado: ${f.estado}
                     <button onclick="pagarFiado('${f.deudor}')">Pagar</button>
                 </div>`;
             });
-            document.getElementById('fiadosLista').innerHTML = html;
+            container.innerHTML = html;
         }
+
         window.pagarFiado = (deudor) => {
-            let monto = prompt('Monto a pagar (parcial/total)');
-            // simular
-            alert(`Pago de $${monto} aplicado a ${deudor}`);
+            let monto = prompt('Monto a pagar (parcial/total):', '0');
+            if (monto && !isNaN(parseFloat(monto))) {
+                alert(`Pago de $${monto} aplicado a ${deudor} (simulado). En un sistema real se actualizaría la deuda.`);
+                // Aquí se podría modificar el registro de fiado
+            }
         };
 
-        // REPORTES
+        // ---------- FUNCIONES DE REPORTES ----------
         function renderReportes() {
-            let tbody = document.getElementById('reportesBody');
-            tbody.innerHTML = ventasHistoricas.map(v => `<tr><td>${v.fecha}</td><td>${v.producto}</td><td>${v.cliente}</td><td>${v.metodo}</td><td>${v.vendedor}</td><td>$${v.total}</td></tr>`).join('');
+            const tbody = document.getElementById('reportesBody');
+            if (ventasHistoricas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="mensaje-vacio">No hay ventas registradas aún.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = ventasHistoricas.map(v => `<tr><td>${v.fecha}</td><td>${v.producto}</td><td>${v.cliente}</td><td>${v.metodo}</td><td>${v.vendedor}</td><td>$${v.total.toFixed(2)}</td></tr>`).join('');
         }
 
-        // CLIENTES
+        // ---------- FUNCIONES DE CLIENTES ----------
         function renderClientes() {
+            const container = document.getElementById('clientesLista');
+            if (customers.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio">👥 No hay clientes registrados. Cuando realices ventas, se irán guardando.</div>';
+                return;
+            }
             let html = '';
             customers.forEach(c => {
-                html += `<div class="cliente-item ${c.deuda > 0 ? 'deudor-alerta' : ''}" onclick="alert('Compras: '+c.compras.length)">
-                    <strong>${c.nombre}</strong> - ${c.tel} ${c.deuda>0 ? '⚠️ Deuda: $'+c.deuda : ''}
+                html += `<div class="cliente-item ${c.deuda > 0 ? 'deudor-alerta' : ''}" onclick="alert('Compras: ' + (c.compras?.length || 0))">
+                    <strong>${c.nombre}</strong> - ${c.tel} ${c.deuda > 0 ? '⚠️ Deuda: $'+c.deuda.toFixed(2) : ''}
                 </div>`;
             });
-            document.getElementById('clientesLista').innerHTML = html;
+            container.innerHTML = html;
         }
 
-        // PROVEEDORES
+        // ---------- FUNCIONES DE PROVEEDORES ----------
         function renderProveedores() {
-            document.getElementById('proveedoresLista').innerHTML = proveedores.map(p => `<div class="proveedor-item">${p.nombre} - ${p.contacto} | Deuda: $${p.deuda}</div>`).join('');
+            const container = document.getElementById('proveedoresLista');
+            if (proveedores.length === 0) {
+                container.innerHTML = '<div class="mensaje-vacio">🚚 No hay proveedores registrados. Puedes agregarlos manualmente (función pendiente).</div>';
+                return;
+            }
+            container.innerHTML = proveedores.map(p => `<div class="proveedor-item">${p.nombre} - ${p.contacto} | Deuda: $${(p.deuda || 0).toFixed(2)}</div>`).join('');
         }
 
-        // EXCEL SIMULADO
+        // ---------- EXCEL SIMULADO ----------
         window.descargarExcel = (tipo) => {
-            alert(`Se descargaría archivo Excel con membrete de Escamilla B. Wilson M. (simulado) y se enviaría a jhoncuenta2@gmail.com (integración Drive simulada).`);
+            let mensaje = `Se descargaría un archivo Excel con membrete de Escamilla B. Wilson M. (simulado)`;
+            if (tipo === 'ventas') mensaje += ' con el reporte de ventas';
+            else if (tipo === 'fiados') mensaje += ' con la lista de fiados';
+            else if (tipo === 'almacen') mensaje += ' con el inventario actual';
+            else if (tipo === 'inventario') mensaje += ' con el inventario del día';
+            mensaje += '.\nEnvío simulado a jhoncuenta2@gmail.com (integración con Drive pendiente).';
+            alert(mensaje);
         };
 
-        // Inicializar vistas
+        // ---------- SINCRONIZACIÓN ENTRE PESTAÑAS (simulada con localStorage) ----------
+        function syncProducts() {
+            localStorage.setItem('productos', JSON.stringify(products));
+            localStorage.setItem('clientes', JSON.stringify(customers));
+            localStorage.setItem('fiados', JSON.stringify(fiados));
+            localStorage.setItem('proveedores', JSON.stringify(proveedores));
+            localStorage.setItem('ventasHistoricas', JSON.stringify(ventasHistoricas));
+        }
+
+        // Cargar datos desde localStorage al iniciar (para simular persistencia entre recargas)
+        function loadFromStorage() {
+            const storedProducts = localStorage.getItem('productos');
+            if (storedProducts) products = JSON.parse(storedProducts);
+            const storedCustomers = localStorage.getItem('clientes');
+            if (storedCustomers) customers = JSON.parse(storedCustomers);
+            const storedFiados = localStorage.getItem('fiados');
+            if (storedFiados) fiados = JSON.parse(storedFiados);
+            const storedProveedores = localStorage.getItem('proveedores');
+            if (storedProveedores) proveedores = JSON.parse(storedProveedores);
+            const storedVentas = localStorage.getItem('ventasHistoricas');
+            if (storedVentas) ventasHistoricas = JSON.parse(storedVentas);
+        }
+
+        // Inicializar: cargar datos si existen y renderizar vistas
+        loadFromStorage();
         renderProductos();
         renderCarrito();
         renderInventario();
@@ -717,29 +803,27 @@
         renderClientes();
         renderProveedores();
 
-        // Sincronización entre pestañas (simulada con localStorage)
+        // Escuchar cambios en localStorage (desde otra pestaña)
         window.addEventListener('storage', (e) => {
-            if (e.key === 'productos') {
-                products = JSON.parse(e.newValue);
-                renderProductos();
-            }
+            if (e.key === 'productos') products = JSON.parse(e.newValue) || [];
+            if (e.key === 'clientes') customers = JSON.parse(e.newValue) || [];
+            if (e.key === 'fiados') fiados = JSON.parse(e.newValue) || [];
+            if (e.key === 'proveedores') proveedores = JSON.parse(e.newValue) || [];
+            if (e.key === 'ventasHistoricas') ventasHistoricas = JSON.parse(e.newValue) || [];
+            // Volver a renderizar la vista activa
+            const active = document.querySelector('.section.active')?.id;
+            if (active === 'ventas') renderProductos();
+            if (active === 'almacen') renderInventario();
+            if (active === 'fiados') renderFiados();
+            if (active === 'cierres') renderReportes();
+            if (active === 'clientes') renderClientes();
+            if (active === 'proveedores') renderProveedores();
         });
-        // Guardar cambios en localStorage para "misma cuenta"
-        function syncProducts() {
-            localStorage.setItem('productos', JSON.stringify(products));
-        }
-        // Llamar sync después de modificar products (ej. agregarAlCarrito, registrarProducto) - se puede añadir en esas funciones.
-        // Adaptamos agregarAlCarrito y registrarProducto para llamar syncProducts.
-        const originalAgregar = window.agregarAlCarrito;
-        window.agregarAlCarrito = function(id) {
-            originalAgregar(id);
-            syncProducts();
-        };
-        const originalRegistrar = window.registrarProducto;
-        window.registrarProducto = function() {
-            originalRegistrar();
-            syncProducts();
-        };
+
+        // Mejora: al cambiar productos, actualizar localStorage
+        // Ya se llama a syncProducts en agregarAlCarrito y registrarProducto
+        // También se podría llamar después de cada venta (cuando se finalice), pero eso requeriría un botón "Finalizar venta"
+        // Para no complicar la demo, se deja así.
     </script>
 </body>
 </html>
