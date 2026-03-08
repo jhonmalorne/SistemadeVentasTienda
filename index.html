@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>Punto de Venta · Escamilla B. Wilson M. (desde cero)</title>
-    <!-- Font Awesome -->
+    <title>Punto de Venta · Escamilla B. Wilson M.</title>
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -16,13 +16,13 @@
             font-family: 'Inter', sans-serif;
         }
         body {
-            background-color: #f3f6fc;
-            color: #1e293b;
+            background: #f0f4f9;
             padding: 16px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
+        /* HEADER */
         .header {
             display: flex;
             flex-wrap: wrap;
@@ -44,7 +44,6 @@
             display: block;
             font-size: 0.7rem;
             color: #5b6e8c;
-            font-weight: 400;
         }
         .nav-menu {
             display: flex;
@@ -98,6 +97,8 @@
             font-size: 1.2rem;
             color: #0b3b2c;
         }
+
+        /* MAIN */
         main {
             background: white;
             border-radius: 32px;
@@ -112,6 +113,8 @@
         .section.active {
             display: block;
         }
+
+        /* VENTAS: grid */
         .ventas-grid {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
@@ -192,6 +195,8 @@
             gap: 5px;
             cursor: pointer;
         }
+
+        /* NOTA DE VENTA */
         .nota-venta {
             background: #f0f7fa;
             border-radius: 24px;
@@ -241,9 +246,41 @@
         .item-carrito {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 0.9rem;
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px dashed #b0c4d9;
+        }
+        .item-carrito .cant-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .item-carrito .cant-control button {
+            background: #e2eaf3;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .item-carrito .precio-edit {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .item-carrito .precio-edit input {
+            width: 70px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .item-carrito .eliminar-item {
+            color: #b91c1c;
+            cursor: pointer;
+            margin-left: 8px;
         }
         .total-dolar {
             font-size: 1.6rem;
@@ -267,6 +304,11 @@
             border-radius: 20px;
             font-size: 0.95rem;
         }
+        .numero-factura {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
         .btn-concretar {
             background: #25D366;
             color: white;
@@ -283,6 +325,23 @@
             cursor: pointer;
             margin-top: 16px;
         }
+        .btn-anular {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            width: 100%;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        /* MODALES */
         .modal {
             display: none;
             position: fixed;
@@ -296,11 +355,10 @@
             background: white;
             padding: 28px;
             border-radius: 32px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            text-align: center;
         }
         .modal-content canvas {
             max-width: 100%;
@@ -353,6 +411,7 @@
             border-radius: 16px;
             padding: 12px;
             margin: 6px 0;
+            cursor: pointer;
         }
         .deudor-alerta {
             background: #fee2e2;
@@ -363,6 +422,9 @@
             padding: 40px 20px;
             color: #94a3b8;
             font-style: italic;
+        }
+        .filtro-clientes {
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -387,9 +449,10 @@
     </header>
 
     <main>
-        <!-- VENTAS -->
+        <!-- SECCIÓN VENTAS -->
         <div id="ventas" class="section active">
             <div class="ventas-grid">
+                <!-- Lista de productos -->
                 <div class="productos-lista">
                     <div class="buscador">
                         <input type="text" id="buscarProducto" placeholder="Buscar producto...">
@@ -398,27 +461,34 @@
                     <div id="productosContainer"></div>
                     <p style="margin-top: 16px; color: #2563eb;"><i class="fas fa-info-circle"></i> Haz clic en cualquier producto para ver su historial.</p>
                 </div>
+                <!-- Nota de venta -->
                 <div class="nota-venta">
                     <h2><i class="fas fa-receipt"></i> Nota de Venta</h2>
                     <div class="nota-membrete">
                         <div class="membrete-header">Escamilla B. Wilson M.</div>
                         <div class="membrete-dir">Urb. Prebo · Valencia · 0414-4372956</div>
                     </div>
+                    <!-- Número de factura -->
+                    <div class="campo numero-factura">
+                        <label>Factura N°</label>
+                        <input type="text" id="numeroFactura" placeholder="Ej: 001-0001" value="001-0001">
+                    </div>
                     <div id="carritoItems" class="items-carrito"></div>
                     <div class="total-dolar" id="totalUSD">$ 0.00</div>
 
                     <div class="campo">
-                        <label>Cliente <span style="color:#d32f2f;">*</span></label>
-                        <input type="text" id="clienteNombre" placeholder="Nombre completo" required>
+                        <label>Cliente</label>
+                        <input type="text" id="clienteNombre" placeholder="Nombre completo" list="clientesList">
+                        <datalist id="clientesList"></datalist>
                     </div>
                     <div class="campo">
                         <label>Dirección / Zona</label>
                         <input type="text" id="direccion" placeholder="Ej: Urb. Prebo, Av. Bolívar...">
-                        <small style="display:block; margin-top:4px;">+ agregar zona: <button onclick="agregarZonaPrompt()" style="background:none; border:none; color:#2563eb;">➕</button></small>
+                        <small>+ agregar zona: <button onclick="agregarZonaPrompt()" style="background:none; border:none; color:#2563eb;">➕</button></small>
                     </div>
                     <div class="campo">
-                        <label>Teléfono WhatsApp <span style="color:#d32f2f;">*</span></label>
-                        <input type="tel" id="telefonoWSP" placeholder="0412 3456789" required>
+                        <label>Teléfono WhatsApp</label>
+                        <input type="tel" id="telefonoWSP" placeholder="0412 3456789">
                     </div>
                     <div class="campo">
                         <label>Vendedor</label>
@@ -437,6 +507,7 @@
                         </select>
                     </div>
                     <button class="btn-concretar" onclick="concretarVenta()"><i class="fas fa-check-circle"></i> Concretar venta y enviar WhatsApp</button>
+                    <button class="btn-anular" onclick="anularVenta()"><i class="fas fa-times-circle"></i> Anular venta</button>
                 </div>
             </div>
         </div>
@@ -460,7 +531,7 @@
                     <div class="campo"><label>Precio $</label><input id="nuevoPrecio" type="number" step="0.01" value="5.00"></div>
                     <div class="campo"><label>Foto (opcional)</label><input type="file" id="nuevaFoto" accept="image/*"></div>
                     <button class="btn-excel" onclick="registrarProducto()"><i class="fas fa-save"></i> Guardar producto</button>
-                    <p><small>Código único se genera automáticamente.</small></p>
+                    <p><small>Código único se genera automáticamente. Fecha/hora se registra internamente.</small></p>
                 </div>
                 <div>
                     <h3>Inventario actual <button class="btn-excel" onclick="descargarExcel('almacen')"><i class="fas fa-download"></i> Excel</button></h3>
@@ -483,7 +554,7 @@
                 <button class="btn-excel" onclick="descargarExcel('inventario')">📦 Inventario hoy</button>
             </div>
             <table>
-                <thead><tr><th>Fecha/Hora</th><th>Producto</th><th>Cliente</th><th>Método pago</th><th>Vendedor</th><th>Total $</th></tr></thead>
+                <thead><tr><th>Fecha/Hora</th><th>Factura</th><th>Producto</th><th>Cantidad</th><th>Cliente</th><th>Método pago</th><th>Vendedor</th><th>Total $</th></tr></thead>
                 <tbody id="reportesBody"></tbody>
             </table>
         </div>
@@ -491,6 +562,9 @@
         <!-- CLIENTES -->
         <div id="clientes" class="section">
             <h2>Base de clientes</h2>
+            <div class="filtro-clientes">
+                <input type="text" id="filtroClientes" placeholder="Filtrar por nombre..." style="width:100%; padding:12px; border-radius:40px; border:1px solid #ccc;">
+            </div>
             <div id="clientesLista"></div>
         </div>
 
@@ -514,11 +588,20 @@
         </div>
     </div>
 
+    <!-- MODAL DETALLE CLIENTE -->
+    <div id="modalCliente" class="modal">
+        <div class="modal-content">
+            <h3 id="modalClienteNombre">Compras del cliente</h3>
+            <div id="clienteComprasDetalle"></div>
+            <button onclick="cerrarModalCliente()" style="margin-top:16px; padding:8px 20px;">Cerrar</button>
+        </div>
+    </div>
+
     <!-- MODAL IMAGEN BOLETA -->
     <div id="modalBoleta" class="modal">
         <div class="modal-content">
             <h3>🧾 Boleta de venta</h3>
-            <canvas id="boletaCanvas" width="400" height="500"></canvas>
+            <canvas id="boletaCanvas" width="450" height="600"></canvas>
             <div style="display:flex; gap:10px; justify-content:center; margin-top:16px;">
                 <button onclick="descargarBoleta()" class="btn-excel">📥 Descargar imagen</button>
                 <button onclick="cerrarModalBoleta()" style="padding:8px 16px;">Cerrar</button>
@@ -527,14 +610,15 @@
     </div>
 
     <script>
-        // ---------- BASES DE DATOS VACÍAS ----------
+        // ---------- BASES DE DATOS VACÍAS (DESDE CERO) ----------
         let products = [];               // Productos en almacén
         let customers = [];              // Clientes
-        let fiados = [];                 // Registro de fiados
+        let fiados = [];                 // Registro de fiados (por venta completa)
         let proveedores = [];             // Proveedores
-        let ventasHistoricas = [];        // Ventas realizadas
+        let ventasHistoricas = [];        // Ventas realizadas (cada línea de producto)
+        let ventasCabecera = [];           // Cabeceras de venta (para número de factura, cliente, total, etc.)
 
-        // Carrito de compra actual (no descuenta stock hasta concretar)
+        // Carrito de compra actual (con cantidades y precios editables)
         let carrito = [];
 
         // Tasa BCV
@@ -561,7 +645,7 @@
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 if (btn.getAttribute('onclick')?.includes(id)) btn.classList.add('active');
             });
-            if (id === 'ventas') renderProductos();
+            if (id === 'ventas') { renderProductos(); actualizarDatalistClientes(); }
             if (id === 'almacen') renderInventario();
             if (id === 'fiados') renderFiados();
             if (id === 'cierres') renderReportes();
@@ -569,7 +653,7 @@
             if (id === 'proveedores') renderProveedores();
         }
 
-        // ---------- VENTAS ----------
+        // ---------- VENTAS: RENDER PRODUCTOS ----------
         function renderProductos(filtro = '') {
             const container = document.getElementById('productosContainer');
             if (products.length === 0) {
@@ -599,60 +683,100 @@
             const prod = products.find(p => p.id === id);
             const qty = parseInt(document.getElementById(`qty-${id}`).value) || 1;
             if (qty > prod.stock) { alert('Stock insuficiente'); return; }
-            // No se descuenta del stock aún, solo se agrega al carrito
             const existente = carrito.find(i => i.id === id);
             if (existente) {
                 existente.cant += qty;
             } else {
-                carrito.push({ id: prod.id, desc: prod.desc, price: prod.price, cant: qty });
+                carrito.push({ 
+                    id: prod.id, 
+                    desc: prod.desc, 
+                    price: prod.price, 
+                    cant: qty,
+                    stockOriginal: prod.stock // Para devolución si se anula
+                });
             }
             renderCarrito();
         };
 
+        // Render carrito con opciones de edición
         function renderCarrito() {
             const container = document.getElementById('carritoItems');
             let total = 0;
             if (carrito.length === 0) {
                 container.innerHTML = '<div class="mensaje-vacio" style="padding:10px;">🛒 Carrito vacío</div>';
-            } else {
-                container.innerHTML = carrito.map(item => {
-                    total += item.price * item.cant;
-                    return `<div class="item-carrito"><span>${item.desc} x${item.cant}</span><span>$${(item.price*item.cant).toFixed(2)}</span></div>`;
-                }).join('');
+                document.getElementById('totalUSD').innerText = `$ 0.00`;
+                return;
             }
+            let html = '';
+            carrito.forEach((item, index) => {
+                const subtotal = item.price * item.cant;
+                total += subtotal;
+                html += `
+                    <div class="item-carrito">
+                        <span><strong>${item.desc}</strong></span>
+                        <div class="cant-control">
+                            <button onclick="cambiarCantidad(${index}, -1)">-</button>
+                            <span>${item.cant}</span>
+                            <button onclick="cambiarCantidad(${index}, 1)">+</button>
+                        </div>
+                        <div class="precio-edit">
+                            $ <input type="number" step="0.01" value="${item.price.toFixed(2)}" onchange="editarPrecio(${index}, this.value)">
+                        </div>
+                        <span>$${subtotal.toFixed(2)}</span>
+                        <i class="fas fa-trash-alt eliminar-item" onclick="eliminarDelCarrito(${index})"></i>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
             document.getElementById('totalUSD').innerText = `$ ${total.toFixed(2)}`;
         }
 
-        // Historial de producto
-        window.verHistorial = (id) => {
-            const prod = products.find(p => p.id === id);
-            if (!prod) return;
-            document.getElementById('modalProductoNombre').innerText = `Historial: ${prod.desc}`;
-            const historial = ventasHistoricas.filter(v => v.producto === prod.desc);
-            if (historial.length === 0) {
-                document.getElementById('historialDetalle').innerHTML = '<p>📭 Este producto aún no tiene ventas.</p>';
-            } else {
-                document.getElementById('historialDetalle').innerHTML = historial.map(h => `<p>${h.fecha} - ${h.cliente} - $${h.total}</p>`).join('');
+        // Funciones de edición del carrito
+        window.cambiarCantidad = (index, delta) => {
+            const item = carrito[index];
+            const nuevo = item.cant + delta;
+            if (nuevo < 1) return;
+            // Verificar stock disponible (contra el producto actual)
+            const prod = products.find(p => p.id === item.id);
+            if (nuevo > prod.stock + item.cant) { // porque ya tenía reservado item.cant
+                alert('Stock insuficiente');
+                return;
             }
-            document.getElementById('modalHistorial').style.display = 'flex';
+            item.cant = nuevo;
+            renderCarrito();
         };
 
-        window.cerrarModal = () => document.getElementById('modalHistorial').style.display = 'none';
-
-        // Zonas
-        window.agregarZonaPrompt = () => {
-            let zona = prompt('Nueva zona/dirección:');
-            if (zona) document.getElementById('direccion').value = zona;
+        window.editarPrecio = (index, nuevoPrecio) => {
+            let precio = parseFloat(nuevoPrecio);
+            if (isNaN(precio) || precio < 0) precio = 0;
+            carrito[index].price = precio;
+            renderCarrito();
         };
 
-        // ---------- CONCRETAR VENTA (corazón del sistema) ----------
+        window.eliminarDelCarrito = (index) => {
+            carrito.splice(index, 1);
+            renderCarrito();
+        };
+
+        // Anular venta: devuelve stock y limpia carrito
+        window.anularVenta = () => {
+            if (carrito.length === 0) { alert('No hay venta que anular'); return; }
+            if (confirm('¿Anular la venta actual? Se devolverá el stock.')) {
+                // Devolver stock (solo si se había descontado, pero en este diseño no se descuenta hasta concretar)
+                // Para anular antes de concretar, simplemente vaciamos carrito
+                carrito = [];
+                renderCarrito();
+            }
+        };
+
+        // ---------- CONCRETAR VENTA ----------
         window.concretarVenta = async function() {
-            // Validaciones
             const cliente = document.getElementById('clienteNombre').value.trim();
             const telefono = document.getElementById('telefonoWSP').value.trim();
             const vendedor = document.getElementById('vendedor').value.trim() || 'Wilson M.';
             const metodo = document.getElementById('metodoPago').value;
             const direccion = document.getElementById('direccion').value.trim();
+            const numFactura = document.getElementById('numeroFactura').value.trim() || ('FAC-' + Date.now().toString().slice(-6));
 
             if (!cliente) { alert('Debes ingresar el nombre del cliente'); return; }
             if (!telefono) { alert('Debes ingresar el teléfono para enviar la nota'); return; }
@@ -667,24 +791,40 @@
                 }
             }
 
-            // Registrar venta en ventasHistoricas (fecha y hora actual)
+            // Fecha y hora actual
             const fecha = new Date();
             const fechaStr = fecha.toLocaleString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-            let totalVenta = 0;
-            carrito.forEach(item => { totalVenta += item.price * item.cant; });
 
-            // Por cada producto, registramos un registro en ventasHistoricas (o uno por venta con detalle)
-            // Para simplificar, creamos un registro por cada línea de producto
+            // Calcular total
+            let totalVenta = carrito.reduce((acc, it) => acc + it.price * it.cant, 0);
+
+            // Registrar cada línea en ventasHistoricas
             carrito.forEach(item => {
                 ventasHistoricas.push({
                     fecha: fechaStr,
+                    factura: numFactura,
                     producto: item.desc,
+                    cantidad: item.cant,
+                    precioUnitario: item.price,
                     cliente: cliente,
                     metodo: metodo,
                     vendedor: vendedor,
                     total: item.price * item.cant,
                     codigo: item.id
                 });
+            });
+
+            // Registrar cabecera de venta (para fiados y reportes consolidados)
+            ventasCabecera.push({
+                factura: numFactura,
+                fecha: fechaStr,
+                cliente: cliente,
+                telefono: telefono,
+                direccion: direccion,
+                vendedor: vendedor,
+                metodo: metodo,
+                items: carrito.map(i => ({ ...i })),
+                total: totalVenta
             });
 
             // Descontar stock
@@ -699,31 +839,28 @@
                 clienteExistente = { nombre: cliente, tel: telefono, deuda: 0, compras: [] };
                 customers.push(clienteExistente);
             } else {
-                // Actualizar teléfono si es diferente
                 clienteExistente.tel = telefono;
             }
             // Agregar compra al cliente
             clienteExistente.compras.push({
                 fecha: fechaStr,
-                productos: carrito.map(i => ({ desc: i.desc, cant: i.cant, precio: i.price })),
+                factura: numFactura,
+                items: carrito.map(i => ({ desc: i.desc, cant: i.cant, precio: i.price })),
                 total: totalVenta,
                 metodo: metodo
             });
 
-            // Si el método es Fiado Crédito, registrar en fiados
+            // Si el método es Fiado Crédito, registrar en fiados (una sola entrada por venta)
             if (metodo === 'Fiado Crédito') {
-                // Podría ser un solo fiado por venta, o detallado. Lo hacemos por producto para simplificar
-                carrito.forEach(item => {
-                    fiados.push({
-                        deudor: cliente,
-                        tel: telefono,
-                        producto: item.desc,
-                        deudaUSD: item.price * item.cant,
-                        fecha: fechaStr,
-                        estado: 'Pendiente'
-                    });
+                fiados.push({
+                    deudor: cliente,
+                    tel: telefono,
+                    factura: numFactura,
+                    fecha: fechaStr,
+                    totalDeuda: totalVenta,
+                    estado: 'Pendiente',
+                    detalles: carrito.map(i => ({ producto: i.desc, cantidad: i.cant, precio: i.price }))
                 });
-                // Actualizar deuda del cliente
                 clienteExistente.deuda = (clienteExistente.deuda || 0) + totalVenta;
             }
 
@@ -731,10 +868,11 @@
             syncAll();
 
             // Generar imagen de la boleta
-            generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, carrito, totalVenta, fechaStr);
+            generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, carrito, totalVenta, fechaStr, numFactura);
 
             // Enviar WhatsApp con el texto
             let msj = `*NOTA DE VENTA - Escamilla B. Wilson M.*\n`;
+            msj += `Factura N°: ${numFactura}\n`;
             msj += `Fecha: ${fechaStr}\n`;
             msj += `Cliente: ${cliente}\n`;
             msj += `Dirección: ${direccion || 'No especificada'}\n`;
@@ -754,92 +892,94 @@
             renderFiados();
             renderClientes();
             renderReportes();
+            actualizarDatalistClientes();
         };
 
-        // Generar imagen de la boleta en canvas
-        function generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, items, total, fecha) {
+        // Generar imagen de boleta con canvas
+        function generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, items, total, fecha, factura) {
             const canvas = document.getElementById('boletaCanvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 400;
-            canvas.height = 500;
+            canvas.width = 450;
+            canvas.height = 600;
 
             // Fondo blanco
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Marco
+            // Borde decorativo
             ctx.strokeStyle = '#0f3b5e';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.strokeRect(10, 10, canvas.width-20, canvas.height-20);
 
             // Membrete
             ctx.fillStyle = '#0f3b5e';
-            ctx.font = 'bold 18px Inter, sans-serif';
-            ctx.fillText('Escamilla B. Wilson M.', 30, 50);
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText('Escamilla B. Wilson M.', 30, 60);
             ctx.font = '12px Inter';
             ctx.fillStyle = '#4b5563';
-            ctx.fillText('Valencia · 0414-4372956', 30, 75);
-            ctx.fillText('Urb. Prebo', 30, 95);
+            ctx.fillText('Urb. Prebo · Valencia · 0414-4372956', 30, 90);
 
             // Marca de agua
             ctx.globalAlpha = 0.1;
-            ctx.font = 'bold 40px Inter';
+            ctx.font = 'bold 50px Inter';
             ctx.fillStyle = '#2c6e9c';
-            ctx.translate(150, 280);
+            ctx.save();
+            ctx.translate(180, 300);
             ctx.rotate(-0.3);
             ctx.fillText('NOTA DE VENTA', 0, 0);
-            ctx.rotate(0.3);
-            ctx.translate(-150, -280);
+            ctx.restore();
             ctx.globalAlpha = 1;
 
-            // Línea separadora
+            // Línea divisoria
             ctx.strokeStyle = '#ccc';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(20, 120);
-            ctx.lineTo(380, 120);
+            ctx.lineTo(430, 120);
             ctx.stroke();
 
             // Datos de la venta
             ctx.fillStyle = '#1e293b';
             ctx.font = 'bold 11px Inter';
-            ctx.fillText(`Fecha: ${fecha}`, 30, 145);
-            ctx.fillText(`Cliente: ${cliente}`, 30, 165);
-            ctx.fillText(`Tel: ${telefono}`, 30, 185);
-            ctx.fillText(`Dirección: ${direccion || 'N/A'}`, 30, 205);
-            ctx.fillText(`Vendedor: ${vendedor}`, 30, 225);
-            ctx.fillText(`Método: ${metodo}`, 30, 245);
+            ctx.fillText(`Factura: ${factura}`, 30, 145);
+            ctx.fillText(`Fecha: ${fecha}`, 30, 165);
+            ctx.fillText(`Cliente: ${cliente}`, 30, 185);
+            ctx.fillText(`Tel: ${telefono}`, 30, 205);
+            ctx.fillText(`Dirección: ${direccion || 'N/A'}`, 30, 225);
+            ctx.fillText(`Vendedor: ${vendedor}`, 30, 245);
+            ctx.fillText(`Método: ${metodo}`, 30, 265);
 
-            // Tabla de productos
+            // Encabezado de tabla
             ctx.font = 'bold 10px Inter';
             ctx.fillStyle = '#0f3b5e';
-            ctx.fillText('Producto', 30, 275);
-            ctx.fillText('Cant', 220, 275);
-            ctx.fillText('P/U', 270, 275);
-            ctx.fillText('Total', 320, 275);
+            ctx.fillText('Producto', 30, 295);
+            ctx.fillText('Cant', 230, 295);
+            ctx.fillText('P/U', 290, 295);
+            ctx.fillText('Total', 350, 295);
             ctx.strokeStyle = '#a0c4e2';
             ctx.beginPath();
-            ctx.moveTo(20, 280);
-            ctx.lineTo(380, 280);
+            ctx.moveTo(20, 300);
+            ctx.lineTo(430, 300);
             ctx.stroke();
 
-            let y = 295;
+            // Productos
+            let y = 315;
             ctx.font = '10px Inter';
             ctx.fillStyle = '#1e293b';
             items.forEach(item => {
                 ctx.fillText(item.desc.substring(0, 18), 30, y);
-                ctx.fillText(item.cant.toString(), 230, y);
-                ctx.fillText('$'+item.price.toFixed(2), 270, y);
-                ctx.fillText('$'+(item.price*item.cant).toFixed(2), 320, y);
+                ctx.fillText(item.cant.toString(), 240, y);
+                ctx.fillText('$'+item.price.toFixed(2), 290, y);
+                ctx.fillText('$'+(item.price*item.cant).toFixed(2), 350, y);
                 y += 18;
             });
 
             // Total
-            ctx.font = 'bold 14px Inter';
+            ctx.font = 'bold 16px Inter';
             ctx.fillStyle = '#0b3b2c';
-            ctx.fillText(`TOTAL: $${total.toFixed(2)}`, 250, y+25);
+            ctx.fillText(`TOTAL: $${total.toFixed(2)}`, 270, y+20);
 
-            // Mostrar modal con el canvas
+            // Mostrar modal
             document.getElementById('modalBoleta').style.display = 'flex';
         }
 
@@ -855,15 +995,15 @@
             link.click();
         };
 
-        // ---------- ALMACÉN ----------
+        // ---------- FUNCIONES DE ALMACÉN ----------
         function renderInventario() {
             const container = document.getElementById('inventarioLista');
             if (products.length === 0) {
                 container.innerHTML = '<div class="mensaje-vacio">📦 No hay productos registrados.</div>';
                 return;
             }
-            let html = '<table><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Precio $</th></tr>';
-            products.forEach(p => html += `<tr><td>${p.id}</td><td>${p.desc}</td><td>${p.stock}</td><td>$${p.price.toFixed(2)}</td></tr>`);
+            let html = '<table><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Precio $</th><th>Fecha Ingreso</th></tr>';
+            products.forEach(p => html += `<tr><td>${p.id}</td><td>${p.desc}</td><td>${p.stock}</td><td>$${p.price.toFixed(2)}</td><td>${p.fechaIngreso || 'N/A'}</td></tr>`);
             html += '</table>';
             container.innerHTML = html;
         }
@@ -877,7 +1017,15 @@
             if (stock < 0) stock = 0;
             if (precio < 0) precio = 0;
             let newId = 'P' + Date.now().toString().slice(-6);
-            products.push({ id: newId, desc: nombre, stock: stock, price: precio, cat: cat });
+            let fechaIngreso = new Date().toLocaleString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+            products.push({ 
+                id: newId, 
+                desc: nombre, 
+                stock: stock, 
+                price: precio, 
+                cat: cat,
+                fechaIngreso: fechaIngreso
+            });
             document.getElementById('nuevoNombre').value = '';
             document.getElementById('nuevoStock').value = '10';
             document.getElementById('nuevoPrecio').value = '5.00';
@@ -897,7 +1045,34 @@
             }
         };
 
-        // ---------- FIADOS ----------
+        // ---------- HISTORIAL DE PRODUCTO (con cantidades) ----------
+        window.verHistorial = (id) => {
+            const prod = products.find(p => p.id === id);
+            if (!prod) return;
+            document.getElementById('modalProductoNombre').innerText = `Historial: ${prod.desc}`;
+            const historial = ventasHistoricas.filter(v => v.producto === prod.desc);
+            if (historial.length === 0) {
+                document.getElementById('historialDetalle').innerHTML = '<p>📭 Este producto aún no tiene ventas.</p>';
+            } else {
+                let html = '<table><tr><th>Fecha</th><th>Factura</th><th>Cliente</th><th>Cantidad</th><th>P/U</th><th>Total</th></tr>';
+                historial.forEach(h => {
+                    html += `<tr><td>${h.fecha}</td><td>${h.factura}</td><td>${h.cliente}</td><td>${h.cantidad}</td><td>$${h.precioUnitario.toFixed(2)}</td><td>$${h.total.toFixed(2)}</td></tr>`;
+                });
+                html += '</table>';
+                document.getElementById('historialDetalle').innerHTML = html;
+            }
+            document.getElementById('modalHistorial').style.display = 'flex';
+        };
+
+        window.cerrarModal = () => document.getElementById('modalHistorial').style.display = 'none';
+
+        // ---------- ZONAS / DIRECCIÓN ----------
+        window.agregarZonaPrompt = () => {
+            let zona = prompt('Nueva zona/dirección:');
+            if (zona) document.getElementById('direccion').value = zona;
+        };
+
+        // ---------- FIADOS (agrupado por factura) ----------
         function renderFiados() {
             const container = document.getElementById('fiadosLista');
             if (fiados.length === 0) {
@@ -906,19 +1081,23 @@
             }
             let html = '';
             fiados.forEach(f => {
+                let detalles = f.detalles.map(d => `${d.producto} (x${d.cantidad})`).join(', ');
                 html += `<div class="cliente-item ${f.estado === 'Pendiente' ? 'deudor-alerta' : ''}">
-                    <strong>${f.deudor}</strong> - ${f.tel}<br> Producto: ${f.producto} | Deuda: $${f.deudaUSD.toFixed(2)} | Estado: ${f.estado}
-                    <button onclick="pagarFiado('${f.deudor}')">Pagar</button>
+                    <strong>${f.deudor}</strong> - ${f.tel}<br>
+                    Factura: ${f.factura} | Fecha: ${f.fecha}<br>
+ Productos: ${detalles}<br>
+                    <strong>Deuda total: $${f.totalDeuda.toFixed(2)}</strong> | Estado: ${f.estado}
+                    <button onclick="pagarFiado('${f.factura}')">Pagar</button>
                 </div>`;
             });
             container.innerHTML = html;
         }
 
-        window.pagarFiado = (deudor) => {
+        window.pagarFiado = (factura) => {
             let monto = prompt('Monto a pagar (parcial/total):', '0');
             if (monto && !isNaN(parseFloat(monto))) {
-                alert(`Pago de $${monto} aplicado a ${deudor} (simulado).`);
-                // En un sistema real se actualizaría el registro
+                alert(`Pago de $${monto} aplicado a factura ${factura} (simulado). En sistema real se actualizaría.`);
+                // Aquí se podría modificar el estado del fiado
             }
         };
 
@@ -926,33 +1105,71 @@
         function renderReportes() {
             const tbody = document.getElementById('reportesBody');
             if (ventasHistoricas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="mensaje-vacio">No hay ventas registradas aún.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="mensaje-vacio">No hay ventas registradas aún.</td></tr>';
                 return;
             }
-            tbody.innerHTML = ventasHistoricas.map(v => `<tr><td>${v.fecha}</td><td>${v.producto}</td><td>${v.cliente}</td><td>${v.metodo}</td><td>${v.vendedor}</td><td>$${v.total.toFixed(2)}</td></tr>`).join('');
+            tbody.innerHTML = ventasHistoricas.map(v => `<tr>
+                <td>${v.fecha}</td>
+                <td>${v.factura}</td>
+                <td>${v.producto}</td>
+                <td>${v.cantidad}</td>
+                <td>${v.cliente}</td>
+                <td>${v.metodo}</td>
+                <td>${v.vendedor}</td>
+                <td>$${v.total.toFixed(2)}</td>
+            </tr>`).join('');
         }
 
-        // ---------- CLIENTES ----------
+        // ---------- CLIENTES (con filtro y alerta de deuda) ----------
         function renderClientes() {
             const container = document.getElementById('clientesLista');
+            const filtro = document.getElementById('filtroClientes')?.value.toLowerCase() || '';
             if (customers.length === 0) {
                 container.innerHTML = '<div class="mensaje-vacio">👥 No hay clientes registrados.</div>';
                 return;
             }
+            let filtrados = customers.filter(c => c.nombre.toLowerCase().includes(filtro));
             let html = '';
-            customers.forEach(c => {
-                html += `<div class="cliente-item ${c.deuda > 0 ? 'deudor-alerta' : ''}" onclick="alert('Compras: ' + (c.compras?.length || 0))">
+            filtrados.forEach(c => {
+                html += `<div class="cliente-item ${c.deuda > 0 ? 'deudor-alerta' : ''}" onclick="verCliente('${c.nombre}')">
                     <strong>${c.nombre}</strong> - ${c.tel} ${c.deuda > 0 ? '⚠️ Deuda: $'+c.deuda.toFixed(2) : ''}
                 </div>`;
             });
             container.innerHTML = html;
         }
 
-        // ---------- PROVEEDORES ----------
+        window.verCliente = (nombre) => {
+            const cliente = customers.find(c => c.nombre === nombre);
+            if (!cliente) return;
+            document.getElementById('modalClienteNombre').innerText = `Compras de ${cliente.nombre}`;
+            let html = '';
+            if (cliente.compras.length === 0) {
+                html = '<p>No hay compras registradas.</p>';
+            } else {
+                html = '<table><tr><th>Fecha</th><th>Factura</th><th>Productos</th><th>Total</th><th>Método</th></tr>';
+                cliente.compras.forEach(comp => {
+                    let prod = comp.items.map(i => `${i.desc} x${i.cant}`).join(', ');
+                    html += `<tr><td>${comp.fecha}</td><td>${comp.factura}</td><td>${prod}</td><td>$${comp.total.toFixed(2)}</td><td>${comp.metodo}</td></tr>`;
+                });
+                html += '</table>';
+            }
+            document.getElementById('clienteComprasDetalle').innerHTML = html;
+            document.getElementById('modalCliente').style.display = 'flex';
+        };
+
+        window.cerrarModalCliente = () => document.getElementById('modalCliente').style.display = 'none';
+
+        // Actualizar datalist de clientes en ventas
+        function actualizarDatalistClientes() {
+            const datalist = document.getElementById('clientesList');
+            datalist.innerHTML = customers.map(c => `<option value="${c.nombre}">`).join('');
+        }
+
+        // ---------- PROVEEDORES (simplificado) ----------
         function renderProveedores() {
             const container = document.getElementById('proveedoresLista');
             if (proveedores.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">🚚 No hay proveedores registrados.</div>';
+                container.innerHTML = '<div class="mensaje-vacio">🚚 No hay proveedores registrados. Puedes agregarlos manualmente.</div>';
                 return;
             }
             container.innerHTML = proveedores.map(p => `<div class="proveedor-item">${p.nombre} - ${p.contacto} | Deuda: $${(p.deuda || 0).toFixed(2)}</div>`).join('');
@@ -976,6 +1193,7 @@
             localStorage.setItem('fiados', JSON.stringify(fiados));
             localStorage.setItem('proveedores', JSON.stringify(proveedores));
             localStorage.setItem('ventasHistoricas', JSON.stringify(ventasHistoricas));
+            localStorage.setItem('ventasCabecera', JSON.stringify(ventasCabecera));
         }
 
         function loadFromStorage() {
@@ -989,6 +1207,8 @@
             if (pr) proveedores = JSON.parse(pr);
             const v = localStorage.getItem('ventasHistoricas');
             if (v) ventasHistoricas = JSON.parse(v);
+            const vc = localStorage.getItem('ventasCabecera');
+            if (vc) ventasCabecera = JSON.parse(vc);
         }
 
         loadFromStorage();
@@ -999,7 +1219,12 @@
         renderReportes();
         renderClientes();
         renderProveedores();
+        actualizarDatalistClientes();
 
+        // Evento para filtro de clientes
+        document.getElementById('filtroClientes')?.addEventListener('input', renderClientes);
+
+        // Sincronización entre pestañas
         window.addEventListener('storage', (e) => {
             if (e.key === 'products') products = JSON.parse(e.newValue) || [];
             if (e.key === 'customers') customers = JSON.parse(e.newValue) || [];
