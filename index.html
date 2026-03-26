@@ -2,1243 +2,368 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>Punto de Venta · Escamilla B. Wilson M.</title>
-    <!-- Font Awesome 6 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>POS Escamilla B. Wilson M. | Sistema de Ventas</title>
+    <!-- Tailwind + Font Awesome + Librerías profesionales -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-        body {
-            background: #f0f4f9;
-            padding: 16px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        /* HEADER */
-        .header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            background: white;
-            padding: 12px 24px;
-            border-radius: 28px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            margin-bottom: 24px;
-        }
-        .empresa h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0f3b5e;
-            letter-spacing: -0.02em;
-        }
-        .empresa small {
-            display: block;
-            font-size: 0.7rem;
-            color: #5b6e8c;
-        }
-        .nav-menu {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .nav-btn {
-            background: transparent;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .nav-btn i {
-            font-size: 1.2rem;
-            color: #2c6e9c;
-        }
-        .nav-btn:hover {
-            background: #e6f0fa;
-        }
-        .nav-btn.active {
-            background: #1e4a6d;
-            color: white;
-        }
-        .nav-btn.active i {
-            color: white;
-        }
-        .dolar-info {
-            background: #eef2f6;
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .dolar-info i {
-            color: #2e7d32;
-            font-size: 1.2rem;
-        }
-        #tasaDolar {
-            font-size: 1.2rem;
-            color: #0b3b2c;
-        }
-
-        /* MAIN */
-        main {
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 35px -8px rgba(0,30,60,0.15);
-            padding: 28px;
-            flex: 1;
-            margin-bottom: 20px;
-        }
-        .section {
-            display: none;
-        }
-        .section.active {
-            display: block;
-        }
-
-        /* VENTAS: grid */
-        .ventas-grid {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 28px;
-        }
-        .productos-lista {
-            background: #f9fbfd;
-            border-radius: 24px;
-            padding: 20px;
-        }
-        .buscador {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .buscador input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 1px solid #dbe0e8;
-            border-radius: 40px;
-            font-size: 1rem;
-        }
-        .buscador button {
-            background: #1e4a6d;
-            border: none;
-            color: white;
-            width: 50px;
-            border-radius: 40px;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-        .producto-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 12px 18px;
-            margin-bottom: 10px;
-            border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            border-left: 6px solid #a0c4e2;
-            transition: 0.1s;
-            cursor: pointer;
-        }
-        .producto-item.alerta-stock {
-            border-left-color: #dc2626;
-            background: #fff5f5;
-        }
-        .producto-info h4 {
-            font-weight: 600;
-        }
-        .producto-info p {
-            font-size: 0.8rem;
-            color: #475569;
-        }
-        .producto-accion {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .producto-accion input {
-            width: 60px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            text-align: center;
-        }
-        .btn-agregar {
-            background: #1e88e5;
-            border: none;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-
-        /* NOTA DE VENTA */
-        .nota-venta {
-            background: #f0f7fa;
-            border-radius: 24px;
-            padding: 22px;
-        }
-        .nota-venta h2 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1.5rem;
-            margin-bottom: 16px;
-        }
-        .nota-membrete {
-            background: white;
-            padding: 18px;
-            border-radius: 18px;
-            margin-bottom: 20px;
+        /* Estilos personalizados para scroll y detalles */
+        .bg-glass { background: rgba(255,255,255,0.95);}
+        .product-card:hover { transform: translateY(-3px); transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.1);}
+        .scroll-products { max-height: 60vh; overflow-y: auto; }
+        .active-tab { border-bottom: 3px solid #3b82f6; color: #1e3a8a; font-weight: bold; background: #eff6ff; }
+        .watermark-bg {
             position: relative;
             overflow: hidden;
         }
-        .nota-membrete::after {
+        .watermark-bg::after {
             content: "NOTA DE VENTA";
             position: absolute;
-            top: 30%;
-            left: 20%;
+            bottom: 20%;
+            left: 0;
+            right: 0;
+            text-align: center;
             font-size: 3rem;
-            font-weight: 800;
-            color: rgba(200,220,240,0.2);
-            transform: rotate(-15deg);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .membrete-header {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #0f3b5e;
-        }
-        .membrete-dir {
-            font-size: 0.8rem;
-            color: #4b5563;
-        }
-        .items-carrito {
-            margin: 15px 0;
-            max-height: 220px;
-            overflow-y: auto;
-        }
-        .item-carrito {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            padding: 8px 0;
-            border-bottom: 1px dashed #b0c4d9;
-        }
-        .item-carrito .cant-control {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .item-carrito .cant-control button {
-            background: #e2eaf3;
-            border: none;
-            width: 26px;
-            height: 26px;
-            border-radius: 13px;
             font-weight: bold;
-            cursor: pointer;
+            color: rgba(0,0,0,0.05);
+            pointer-events: none;
+            transform: rotate(-25deg);
+            white-space: nowrap;
+            z-index: 0;
         }
-        .item-carrito .precio-edit {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .item-carrito .precio-edit input {
-            width: 70px;
-            padding: 4px;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            text-align: center;
-        }
-        .item-carrito .eliminar-item {
-            color: #b91c1c;
-            cursor: pointer;
-            margin-left: 8px;
-        }
-        .total-dolar {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #0b3b2c;
-            text-align: right;
-        }
-        .campo {
-            margin: 12px 0;
-        }
-        .campo label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-        }
-        .campo input, .campo select, .campo textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 20px;
-            font-size: 0.95rem;
-        }
-        .numero-factura {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .btn-concretar {
-            background: #25D366;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 40px;
-            font-weight: 700;
-            width: 100%;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            margin-top: 16px;
-        }
-        .btn-anular {
-            background: #d32f2f;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 40px;
-            font-weight: 600;
-            width: 100%;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        /* MODALES */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-        .modal-content {
+        .recibo-card {
             background: white;
-            padding: 28px;
-            border-radius: 32px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
         }
-        .modal-content canvas {
-            max-width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 16px;
-            margin: 16px 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-        th {
-            background: #e2eaf3;
-            padding: 12px;
-            text-align: left;
-        }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #e9edf2;
-        }
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .badge.rojo { background: #fee2e2; color: #b91c1c; }
-        .footer {
-            text-align: center;
-            color: #5f6b7a;
-            font-size: 0.9rem;
-            background: white;
-            padding: 16px;
-            border-radius: 40px;
-        }
-        .btn-excel {
-            background: #0f7b3a;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .proveedor-item, .cliente-item {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 12px;
-            margin: 6px 0;
-            cursor: pointer;
-        }
-        .deudor-alerta {
-            background: #fee2e2;
-            border-left: 8px solid #b91c1c;
-        }
-        .mensaje-vacio {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94a3b8;
-            font-style: italic;
-        }
-        .filtro-clientes {
-            margin-bottom: 20px;
-        }
+        /* Alerta stock bajo */
+        .stock-alert { background-color: #fee2e2; color: #b91c1c; font-weight: bold; border-left: 4px solid #ef4444; }
     </style>
 </head>
-<body>
-    <header class="header">
-        <div class="empresa">
-            <h1>Escamilla B. Wilson M.</h1>
-            <small>Valencia, Edo. Carabobo • 0414-4372956 / 0412-4749513</small>
-        </div>
-        <div class="nav-menu">
-            <button class="nav-btn active" onclick="showSection('ventas')"><i class="fas fa-shopping-cart"></i> Ventas</button>
-            <button class="nav-btn" onclick="showSection('almacen')"><i class="fas fa-warehouse"></i> Almacén</button>
-            <button class="nav-btn" onclick="showSection('fiados')"><i class="fas fa-hand-holding-usd"></i> Fiados</button>
-            <button class="nav-btn" onclick="showSection('cierres')"><i class="fas fa-chart-bar"></i> Cierre/Reportes</button>
-            <button class="nav-btn" onclick="showSection('clientes')"><i class="fas fa-users"></i> Clientes</button>
-            <button class="nav-btn" onclick="showSection('proveedores')"><i class="fas fa-truck"></i> Proveedores</button>
-        </div>
-        <div class="dolar-info">
-            <i class="fas fa-dollar-sign"></i>
-            <span id="tasaDolar">cargando...</span>
-        </div>
-    </header>
+<body class="bg-gray-100 font-sans">
 
-    <main>
-        <!-- SECCIÓN VENTAS -->
-        <div id="ventas" class="section active">
-            <div class="ventas-grid">
-                <!-- Lista de productos -->
-                <div class="productos-lista">
-                    <div class="buscador">
-                        <input type="text" id="buscarProducto" placeholder="Buscar producto...">
-                        <button><i class="fas fa-search"></i></button>
-                    </div>
-                    <div id="productosContainer"></div>
-                    <p style="margin-top: 16px; color: #2563eb;"><i class="fas fa-info-circle"></i> Haz clic en cualquier producto para ver su historial.</p>
-                </div>
-                <!-- Nota de venta -->
-                <div class="nota-venta">
-                    <h2><i class="fas fa-receipt"></i> Nota de Venta</h2>
-                    <div class="nota-membrete">
-                        <div class="membrete-header">Escamilla B. Wilson M.</div>
-                        <div class="membrete-dir">Urb. Prebo · Valencia · 0414-4372956</div>
-                    </div>
-                    <!-- Número de factura -->
-                    <div class="campo numero-factura">
-                        <label>Factura N°</label>
-                        <input type="text" id="numeroFactura" placeholder="Ej: 001-0001" value="001-0001">
-                    </div>
-                    <div id="carritoItems" class="items-carrito"></div>
-                    <div class="total-dolar" id="totalUSD">$ 0.00</div>
-
-                    <div class="campo">
-                        <label>Cliente</label>
-                        <input type="text" id="clienteNombre" placeholder="Nombre completo" list="clientesList">
-                        <datalist id="clientesList"></datalist>
-                    </div>
-                    <div class="campo">
-                        <label>Dirección / Zona</label>
-                        <input type="text" id="direccion" placeholder="Ej: Urb. Prebo, Av. Bolívar...">
-                        <small>+ agregar zona: <button onclick="agregarZonaPrompt()" style="background:none; border:none; color:#2563eb;">➕</button></small>
-                    </div>
-                    <div class="campo">
-                        <label>Teléfono WhatsApp</label>
-                        <input type="tel" id="telefonoWSP" placeholder="0412 3456789">
-                    </div>
-                    <div class="campo">
-                        <label>Vendedor</label>
-                        <input type="text" id="vendedor" value="Wilson M.">
-                    </div>
-                    <div class="campo">
-                        <label>Método de Pago</label>
-                        <select id="metodoPago">
-                            <option>Efectivo</option>
-                            <option>Pago móvil</option>
-                            <option>Divisas</option>
-                            <option>Biopago</option>
-                            <option>Transferencia</option>
-                            <option>Fiado Crédito</option>
-                            <option>Binance</option>
-                        </select>
-                    </div>
-                    <button class="btn-concretar" onclick="concretarVenta()"><i class="fas fa-check-circle"></i> Concretar venta y enviar WhatsApp</button>
-                    <button class="btn-anular" onclick="anularVenta()"><i class="fas fa-times-circle"></i> Anular venta</button>
-                </div>
+    <div class="max-w-[1600px] mx-auto p-3">
+        <!-- HEADER: nombre empresa + botones principales -->
+        <div class="flex flex-wrap justify-between items-center bg-white shadow-md rounded-2xl p-4 mb-4">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-store text-3xl text-blue-700"></i>
+                <h1 class="text-2xl font-extrabold tracking-tight text-gray-800">Escamilla B. Wilson M.</h1>
+                <div class="hidden md:block text-xs text-gray-500 ml-2">📍 Valencia, Edo Carabobo | 📞 0414-4372956 / 0412-4749513</div>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
+                <button data-tab="ventas" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-50 transition"><i class="fas fa-cash-register"></i> Ventas</button>
+                <button data-tab="almacen" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-boxes"></i> Almacén</button>
+                <button data-tab="fiados" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-hand-holding-usd"></i> Fiados</button>
+                <button data-tab="reportes" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-chart-line"></i> Cierre / Reportes</button>
+                <button data-tab="clientes" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-users"></i> Clientes</button>
+                <button data-tab="proveedores" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-truck"></i> Proveedores</button>
             </div>
         </div>
 
-        <!-- ALMACÉN -->
-        <div id="almacen" class="section">
-            <h2><i class="fas fa-warehouse"></i> Control de Almacén</h2>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
-                <div style="background:#f3f8fe; padding:20px; border-radius:28px;">
-                    <h3>Registrar nuevo producto</h3>
-                    <div class="campo"><label>Nombre</label><input id="nuevoNombre" placeholder="Ej: Morral Avengers"></div>
-                    <div class="campo"><label>Categoría</label>
-                        <select id="nuevaCategoria">
-                            <option>Accesorios</option><option>Juguetes</option><option>Juguetes Avengers</option>
-                            <option>Lonchera y cartucheras</option><option>Morrales</option><option>Peluches</option>
-                            <option>Peluches personajes</option><option>Útiles escolares</option>
-                        </select>
-                        <button onclick="agregarCategoriaPrompt()" style="margin-top:5px;">+ otra categoría</button>
-                    </div>
-                    <div class="campo"><label>Stock inicial</label><input id="nuevoStock" type="number" value="10"></div>
-                    <div class="campo"><label>Precio $</label><input id="nuevoPrecio" type="number" step="0.01" value="5.00"></div>
-                    <div class="campo"><label>Foto (opcional)</label><input type="file" id="nuevaFoto" accept="image/*"></div>
-                    <button class="btn-excel" onclick="registrarProducto()"><i class="fas fa-save"></i> Guardar producto</button>
-                    <p><small>Código único se genera automáticamente. Fecha/hora se registra internamente.</small></p>
-                </div>
-                <div>
-                    <h3>Inventario actual <button class="btn-excel" onclick="descargarExcel('almacen')"><i class="fas fa-download"></i> Excel</button></h3>
-                    <div id="inventarioLista" style="max-height:400px; overflow:auto;"></div>
-                </div>
+        <!-- CONTENIDO DINÁMICO (TABS) -->
+        <div id="contenidoPrincipal"></div>
+
+        <!-- Modal Historial Producto (oculto) -->
+        <div id="modalHistorial" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 p-4">
+            <div class="bg-white rounded-2xl max-w-3xl w-full p-5 max-h-[80vh] overflow-auto">
+                <div class="flex justify-between items-center border-b pb-2 mb-3"><h2 class="text-xl font-bold"><i class="fas fa-history"></i> Historial de Ventas - <span id="historialProductoNombre"></span></h2><button onclick="cerrarModalHistorial()" class="text-red-500 text-2xl">&times;</button></div>
+                <div id="listaHistorialProducto" class="space-y-2"></div>
             </div>
         </div>
 
-        <!-- FIADOS -->
-        <div id="fiados" class="section">
-            <h2>Cuentas por cobrar (Fiados) <button class="btn-excel" onclick="descargarExcel('fiados')">📥 Excel Fiados</button></h2>
-            <div id="fiadosLista"></div>
-        </div>
-
-        <!-- CIERRE / REPORTES -->
-        <div id="cierres" class="section">
-            <h2>Reportes y cierre</h2>
-            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:25px;">
-                <button class="btn-excel" onclick="descargarExcel('ventas')">📊 Reporte de Ventas (Excel)</button>
-                <button class="btn-excel" onclick="descargarExcel('inventario')">📦 Inventario hoy</button>
-            </div>
-            <table>
-                <thead><tr><th>Fecha/Hora</th><th>Factura</th><th>Producto</th><th>Cantidad</th><th>Cliente</th><th>Método pago</th><th>Vendedor</th><th>Total $</th></tr></thead>
-                <tbody id="reportesBody"></tbody>
-            </table>
-        </div>
-
-        <!-- CLIENTES -->
-        <div id="clientes" class="section">
-            <h2>Base de clientes</h2>
-            <div class="filtro-clientes">
-                <input type="text" id="filtroClientes" placeholder="Filtrar por nombre..." style="width:100%; padding:12px; border-radius:40px; border:1px solid #ccc;">
-            </div>
-            <div id="clientesLista"></div>
-        </div>
-
-        <!-- PROVEEDORES -->
-        <div id="proveedores" class="section">
-            <h2>Proveedores</h2>
-            <div id="proveedoresLista"></div>
-        </div>
-    </main>
-
-    <footer class="footer">
-        Agradecimientos a Nexus Marketing 📲 0424-4525765 · interfaz diseñada para crecimiento de tu negocio
-    </footer>
-
-    <!-- MODAL HISTORIAL PRODUCTO -->
-    <div id="modalHistorial" class="modal">
-        <div class="modal-content">
-            <h3 id="modalProductoNombre">Historial de ventas</h3>
-            <div id="historialDetalle"></div>
-            <button onclick="cerrarModal()" style="margin-top:16px; padding:8px 20px;">Cerrar</button>
+        <!-- Modal Editar / Pagar Fiado -->
+        <div id="modalPagoFiado" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 p-4">
+            <div class="bg-white rounded-2xl max-w-md w-full p-5"><h3 class="font-bold text-lg">Registrar pago fiado</h3><input type="number" id="montoPagoFiado" placeholder="Monto en USD" class="border p-2 w-full my-2 rounded"><button id="confirmarPagoFiadoBtn" class="bg-green-600 text-white px-4 py-2 rounded w-full">Pagar</button><button onclick="cerrarModalFiado()" class="mt-2 w-full bg-gray-300 py-2 rounded">Cancelar</button></div>
         </div>
     </div>
 
-    <!-- MODAL DETALLE CLIENTE -->
-    <div id="modalCliente" class="modal">
-        <div class="modal-content">
-            <h3 id="modalClienteNombre">Compras del cliente</h3>
-            <div id="clienteComprasDetalle"></div>
-            <button onclick="cerrarModalCliente()" style="margin-top:16px; padding:8px 20px;">Cerrar</button>
-        </div>
-    </div>
-
-    <!-- MODAL IMAGEN BOLETA -->
-    <div id="modalBoleta" class="modal">
-        <div class="modal-content">
-            <h3>🧾 Boleta de venta</h3>
-            <canvas id="boletaCanvas" width="450" height="600"></canvas>
-            <div style="display:flex; gap:10px; justify-content:center; margin-top:16px;">
-                <button onclick="descargarBoleta()" class="btn-excel">📥 Descargar imagen</button>
-                <button onclick="cerrarModalBoleta()" style="padding:8px 16px;">Cerrar</button>
-            </div>
-        </div>
-    </div>
+    <footer class="text-center text-gray-500 text-sm py-4 border-t mt-8">✨ Desarrollado con tecnología avanzada | Agradecimientos a Nexus Marketing 📱 0424-4525765 ✨</footer>
 
     <script>
-        // ---------- BASES DE DATOS VACÍAS (DESDE CERO) ----------
-        let products = [];               // Productos en almacén
-        let customers = [];              // Clientes
-        let fiados = [];                 // Registro de fiados (por venta completa)
-        let proveedores = [];             // Proveedores
-        let ventasHistoricas = [];        // Ventas realizadas (cada línea de producto)
-        let ventasCabecera = [];           // Cabeceras de venta (para número de factura, cliente, total, etc.)
-
-        // Carrito de compra actual (con cantidades y precios editables)
-        let carrito = [];
-
-        // Tasa BCV
-        let tasaBCV = 0;
-        function actualizarTasa() {
-            fetch('https://ve.dolarapi.com/v1/dolares/oficial')
-                .then(r => r.json())
-                .then(data => {
-                    tasaBCV = data.promedio || data.precio || 0;
-                    document.getElementById('tasaDolar').innerText = `Bs. ${tasaBCV.toFixed(2)}`;
-                })
-                .catch(() => {
-                    document.getElementById('tasaDolar').innerText = 'No disponible';
-                });
+        // ====================== INICIALIZACIÓN LOCALSTORAGE (datos desde 0) ======================
+        let db = {
+            products: [], sales: [], customers: [], suppliers: [], categories: [], zones: [], debts: [], settings: { lastInvoice: 0, dollarRate: 1 }
+        };
+        function loadData() {
+            db.products = JSON.parse(localStorage.getItem('pos_products') || '[]');
+            db.sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
+            db.customers = JSON.parse(localStorage.getItem('pos_customers') || '[]');
+            db.suppliers = JSON.parse(localStorage.getItem('pos_suppliers') || '[]');
+            db.categories = JSON.parse(localStorage.getItem('pos_categories') || '["Accesorios","Juguetes","Juguetes Avengers","Lonchera y Cartucheras","Morrales","Peluches","Peluches personajes","Utiles escolares"]');
+            db.zones = JSON.parse(localStorage.getItem('pos_zones') || '["Centro","Norte","Sur","Este","Oeste","La Viña","Prebo"]');
+            db.debts = JSON.parse(localStorage.getItem('pos_debts') || '[]');
+            let settings = JSON.parse(localStorage.getItem('pos_settings') || '{"lastInvoice":0,"dollarRate":1}');
+            db.settings = settings;
+            if(db.products.length === 0) localStorage.setItem('pos_products', JSON.stringify([]));
+            if(db.sales.length === 0) localStorage.setItem('pos_sales', JSON.stringify([]));
+            if(db.customers.length === 0) localStorage.setItem('pos_customers', JSON.stringify([]));
+            if(db.suppliers.length === 0) localStorage.setItem('pos_suppliers', JSON.stringify([]));
+            if(!localStorage.getItem('pos_categories')) localStorage.setItem('pos_categories', JSON.stringify(db.categories));
+            if(!localStorage.getItem('pos_zones')) localStorage.setItem('pos_zones', JSON.stringify(db.zones));
+            if(!localStorage.getItem('pos_debts')) localStorage.setItem('pos_debts', JSON.stringify([]));
+            if(!localStorage.getItem('pos_settings')) localStorage.setItem('pos_settings', JSON.stringify({lastInvoice:0, dollarRate:55.5}));
+            syncFromStorage();
+            actualizarTasaDolar(); // Obtener tasa real
         }
-        actualizarTasa();
-        setInterval(actualizarTasa, 300000);
-
-        // Mostrar secciones
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                if (btn.getAttribute('onclick')?.includes(id)) btn.classList.add('active');
-            });
-            if (id === 'ventas') { renderProductos(); actualizarDatalistClientes(); }
-            if (id === 'almacen') renderInventario();
-            if (id === 'fiados') renderFiados();
-            if (id === 'cierres') renderReportes();
-            if (id === 'clientes') renderClientes();
-            if (id === 'proveedores') renderProveedores();
+        function syncFromStorage() {
+            db.products = JSON.parse(localStorage.getItem('pos_products') || '[]');
+            db.sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
+            db.customers = JSON.parse(localStorage.getItem('pos_customers') || '[]');
+            db.suppliers = JSON.parse(localStorage.getItem('pos_suppliers') || '[]');
+            db.categories = JSON.parse(localStorage.getItem('pos_categories') || '[]');
+            db.zones = JSON.parse(localStorage.getItem('pos_zones') || '[]');
+            db.debts = JSON.parse(localStorage.getItem('pos_debts') || '[]');
+            db.settings = JSON.parse(localStorage.getItem('pos_settings') || '{"lastInvoice":0,"dollarRate":1}');
+        }
+        function saveAll() {
+            localStorage.setItem('pos_products', JSON.stringify(db.products));
+            localStorage.setItem('pos_sales', JSON.stringify(db.sales));
+            localStorage.setItem('pos_customers', JSON.stringify(db.customers));
+            localStorage.setItem('pos_suppliers', JSON.stringify(db.suppliers));
+            localStorage.setItem('pos_categories', JSON.stringify(db.categories));
+            localStorage.setItem('pos_zones', JSON.stringify(db.zones));
+            localStorage.setItem('pos_debts', JSON.stringify(db.debts));
+            localStorage.setItem('pos_settings', JSON.stringify(db.settings));
+        }
+        // Estado del carrito de compra actual
+        let carrito = []; // { productId, code, name, quantity, unitPrice, total }
+        let currentSale = { customerName: '', customerPhone: '', customerAddress: '', seller: '', paymentMethod: 'efectivo', invoiceNumber: 1, zone: '' };
+        
+        // Helper: obtener próximo número factura sugerido
+        function getNextInvoiceNumber() {
+            let max = 0;
+            db.sales.forEach(s => { if(s.invoiceNumber > max) max = s.invoiceNumber; });
+            return max+1;
+        }
+        // Actualizar tasa dolar desde API
+        async function actualizarTasaDolar() {
+            try {
+                const res = await fetch('https://pydolarve.org/api/v1/dollar?mon=usd');
+                const data = await res.json();
+                if(data && data.price) db.settings.dollarRate = parseFloat(data.price);
+                else db.settings.dollarRate = 55.0;
+            } catch(e) { db.settings.dollarRate = 55.0; }
+            localStorage.setItem('pos_settings', JSON.stringify(db.settings));
         }
 
-        // ---------- VENTAS: RENDER PRODUCTOS ----------
-        function renderProductos(filtro = '') {
-            const container = document.getElementById('productosContainer');
-            if (products.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">🧺 No hay productos en el almacén. Ve a "Almacén" y registra tu primer producto.</div>';
-                return;
-            }
-            const filtrados = products.filter(p => p.desc.toLowerCase().includes(filtro.toLowerCase()));
-            if (filtrados.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">🔍 No se encontraron productos.</div>';
-                return;
-            }
-            container.innerHTML = filtrados.map(p => `
-                <div class="producto-item ${p.stock <= 6 ? 'alerta-stock' : ''}" onclick="verHistorial('${p.id}')">
-                    <div class="producto-info">
-                        <h4>${p.desc}</h4>
-                        <p>Stock: ${p.stock} | Precio: $${p.price.toFixed(2)}</p>
-                    </div>
-                    <div class="producto-accion" onclick="event.stopPropagation()">
-                        <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}">
-                        <button class="btn-agregar" onclick="agregarAlCarrito('${p.id}')"><i class="fas fa-plus"></i> Agregar</button>
-                    </div>
+        // ====================== RENDER PRINCIPAL (TABS) ======================
+        let activeTab = 'ventas';
+        function render() {
+            if(activeTab === 'ventas') renderVentas();
+            if(activeTab === 'almacen') renderAlmacen();
+            if(activeTab === 'fiados') renderFiados();
+            if(activeTab === 'reportes') renderReportes();
+            if(activeTab === 'clientes') renderClientes();
+            if(activeTab === 'proveedores') renderProveedores();
+            highlightTab();
+        }
+        function highlightTab() { document.querySelectorAll('.tab-btn').forEach(btn => { btn.classList.remove('active-tab','bg-blue-50'); if(btn.dataset.tab === activeTab) btn.classList.add('active-tab','bg-blue-50'); }); }
+
+        // ---------- VENTAS (productos, carrito, nota) ----------
+        function renderVentas() {
+            let html = `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow p-4">
+                    <div class="flex gap-2 mb-4"><i class="fas fa-search mt-2"></i><input type="text" id="searchProducto" placeholder="Buscar producto..." class="border rounded-xl p-2 w-full"></div>
+                    <div id="productosGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 scroll-products max-h-[55vh] overflow-auto"></div>
                 </div>
-            `).join('');
+                <div class="bg-white rounded-2xl shadow p-4">
+                    <h3 class="font-bold text-xl border-b pb-2"><i class="fas fa-shopping-cart"></i> NOTA DE VENTA</h3>
+                    <div id="carritoItems" class="max-h-64 overflow-auto text-sm my-2"></div>
+                    <div class="border-t pt-2 font-bold">Total USD: $<span id="totalCarrito">0.00</span></div>
+                    <div class="grid grid-cols-2 gap-2 mt-2"><input type="text" id="clienteNombre" placeholder="Nombre Cliente" class="border p-1 rounded text-sm"><input type="text" id="clienteTelefono" placeholder="WhatsApp +58" class="border p-1 rounded text-sm"></div>
+                    <div class="flex gap-2 mt-1"><select id="clienteZona" class="border p-1 rounded text-sm w-full"></select><button onclick="agregarNuevaZona()" class="bg-gray-200 px-2 rounded text-xs"><i class="fas fa-plus"></i></button></div>
+                    <input type="text" id="direccionCliente" placeholder="Dirección detallada" class="border p-1 rounded text-sm w-full mt-1">
+                    <div class="flex gap-2 mt-1"><input type="text" id="vendedorNombre" placeholder="Vendedor" class="border p-1 rounded text-sm w-1/2"><input type="number" id="facturaNumero" placeholder="N° Factura" class="border p-1 rounded text-sm w-1/2"></div>
+                    <select id="metodoPago" class="border p-1 rounded text-sm w-full mt-1"><option value="efectivo">Efectivo</option><option value="pago movil">Pago Móvil</option><option value="divisas">Divisas</option><option value="biopago">Biopago</option><option value="transferencia">Transferencia</option><option value="fiado credito">Fiado Crédito</option><option value="binance">Binance</option></select>
+                    <div class="flex flex-wrap gap-2 mt-3"><button onclick="anularVenta()" class="bg-red-600 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i> Anular Venta</button><button onclick="concretarVentaConWhatsApp()" class="bg-green-700 text-white px-3 py-1 rounded-lg text-sm"><i class="fab fa-whatsapp"></i> Concretar & Enviar Nota</button></div>
+                </div>
+            </div>`;
+            document.getElementById('contenidoPrincipal').innerHTML = html;
+            llenarZonasSelect();
+            document.getElementById('facturaNumero').value = getNextInvoiceNumber();
+            renderProductosGrid('');
+            renderCarrito();
+            document.getElementById('searchProducto').addEventListener('input', (e) => renderProductosGrid(e.target.value));
         }
-
-        window.agregarAlCarrito = (id) => {
-            const prod = products.find(p => p.id === id);
-            const qty = parseInt(document.getElementById(`qty-${id}`).value) || 1;
-            if (qty > prod.stock) { alert('Stock insuficiente'); return; }
-            const existente = carrito.find(i => i.id === id);
-            if (existente) {
-                existente.cant += qty;
-            } else {
-                carrito.push({ 
-                    id: prod.id, 
-                    desc: prod.desc, 
-                    price: prod.price, 
-                    cant: qty,
-                    stockOriginal: prod.stock // Para devolución si se anula
-                });
-            }
+        function llenarZonasSelect() { let select = document.getElementById('clienteZona'); if(select){ select.innerHTML = db.zones.map(z=>`<option value="${z}">${z}</option>`).join(''); } }
+        function agregarNuevaZona() { let nueva = prompt("Nueva zona/dirección:"); if(nueva && !db.zones.includes(nueva)){ db.zones.push(nueva); localStorage.setItem('pos_zones', JSON.stringify(db.zones)); llenarZonasSelect(); Swal.fire("Éxito","Zona agregada","success"); } }
+        function renderProductosGrid(filtro) {
+            let productos = db.products.filter(p => p.name.toLowerCase().includes(filtro.toLowerCase()) || p.code.includes(filtro));
+            let grid = document.getElementById('productosGrid');
+            if(!grid) return;
+            grid.innerHTML = productos.map(p => `<div class="border rounded-xl p-3 product-card ${p.stock <=6 ? 'stock-alert' : ''}"><div class="font-bold">${p.name}</div><div class="text-xs text-gray-500">Cód: ${p.code} | Stock: ${p.stock} | $${p.price_usd}</div><div class="flex gap-2 mt-2"><input type="number" id="cant-${p.id}" value="1" min="1" max="${p.stock}" class="border rounded w-16 text-center"><button onclick="agregarAlCarrito(${p.id})" class="bg-blue-600 text-white px-3 py-1 rounded text-sm"><i class="fas fa-cart-plus"></i> Agregar</button><button onclick="verHistorialProducto(${p.id})" class="bg-gray-200 text-xs px-2 py-1 rounded"><i class="fas fa-chart-line"></i></button></div></div>`).join('');
+        }
+        window.agregarAlCarrito = (productId) => {
+            let prod = db.products.find(p=>p.id===productId);
+            if(!prod) return;
+            let cantidad = parseInt(document.getElementById(`cant-${productId}`)?.value || 1);
+            if(cantidad > prod.stock) { Swal.fire("Stock insuficiente",`Solo ${prod.stock} unidades`,"error"); return; }
+            let existing = carrito.find(i=>i.productId===productId);
+            if(existing) existing.quantity += cantidad;
+            else carrito.push({ productId:prod.id, code:prod.code, name:prod.name, quantity:cantidad, unitPrice:prod.price_usd, total:prod.price_usd*cantidad });
+            carrito = carrito.map(i=>{ i.total = i.quantity*i.unitPrice; return i; });
             renderCarrito();
         };
-
-        // Render carrito con opciones de edición
         function renderCarrito() {
-            const container = document.getElementById('carritoItems');
-            let total = 0;
-            if (carrito.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio" style="padding:10px;">🛒 Carrito vacío</div>';
-                document.getElementById('totalUSD').innerText = `$ 0.00`;
-                return;
-            }
-            let html = '';
-            carrito.forEach((item, index) => {
-                const subtotal = item.price * item.cant;
-                total += subtotal;
-                html += `
-                    <div class="item-carrito">
-                        <span><strong>${item.desc}</strong></span>
-                        <div class="cant-control">
-                            <button onclick="cambiarCantidad(${index}, -1)">-</button>
-                            <span>${item.cant}</span>
-                            <button onclick="cambiarCantidad(${index}, 1)">+</button>
-                        </div>
-                        <div class="precio-edit">
-                            $ <input type="number" step="0.01" value="${item.price.toFixed(2)}" onchange="editarPrecio(${index}, this.value)">
-                        </div>
-                        <span>$${subtotal.toFixed(2)}</span>
-                        <i class="fas fa-trash-alt eliminar-item" onclick="eliminarDelCarrito(${index})"></i>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            document.getElementById('totalUSD').innerText = `$ ${total.toFixed(2)}`;
+            let container = document.getElementById('carritoItems');
+            if(!container) return;
+            if(carrito.length===0){ container.innerHTML='<div class="text-gray-400 text-center p-2">Carrito vacío</div>'; document.getElementById('totalCarrito').innerText='0.00'; return; }
+            let total=0;
+            container.innerHTML = carrito.map((item,idx)=>`<div class="flex justify-between items-center border-b py-1"><div><span class="font-semibold">${item.name}</span><br><span class="text-xs">Cant: <input type="number" min="1" value="${item.quantity}" onchange="editarCantidadCarrito(${idx}, this.value)" class="w-12 border rounded text-center"> | $${item.unitPrice}</span></div><div>$${(item.quantity*item.unitPrice).toFixed(2)} <button onclick="eliminarItemCarrito(${idx})" class="text-red-500 ml-2"><i class="fas fa-trash"></i></button><br><button onclick="editarPrecioUnitario(${idx})" class="text-xs text-blue-500">Editar precio</button></div></div>`).join('');
+            total = carrito.reduce((sum,i)=>sum+(i.quantity*i.unitPrice),0);
+            document.getElementById('totalCarrito').innerText=total.toFixed(2);
         }
-
-        // Funciones de edición del carrito
-        window.cambiarCantidad = (index, delta) => {
-            const item = carrito[index];
-            const nuevo = item.cant + delta;
-            if (nuevo < 1) return;
-            // Verificar stock disponible (contra el producto actual)
-            const prod = products.find(p => p.id === item.id);
-            if (nuevo > prod.stock + item.cant) { // porque ya tenía reservado item.cant
-                alert('Stock insuficiente');
-                return;
+        window.editarCantidadCarrito = (idx, newVal) => { let cant = parseInt(newVal); if(cant>0){ carrito[idx].quantity=cant; carrito[idx].total=carrito[idx].quantity*carrito[idx].unitPrice; renderCarrito(); } };
+        window.eliminarItemCarrito = (idx) => { carrito.splice(idx,1); renderCarrito(); };
+        window.editarPrecioUnitario = (idx) => { let nuevo = parseFloat(prompt("Nuevo precio USD:", carrito[idx].unitPrice)); if(!isNaN(nuevo) && nuevo>0){ carrito[idx].unitPrice=nuevo; carrito[idx].total=carrito[idx].quantity*nuevo; renderCarrito(); } };
+        window.anularVenta = () => { if(carrito.length && confirm("¿Anular venta actual? Se perderán datos")){ carrito=[]; renderCarrito(); Swal.fire("Venta anulada","Stock no afectado","info"); } };
+        
+        // Concretar venta + whatsapp + deducir stock + imagen
+        window.concretarVentaConWhatsApp = async () => {
+            if(carrito.length===0) return Swal.fire("Error","Agrega productos","error");
+            let invoiceNumber = parseInt(document.getElementById('facturaNumero').value);
+            if(isNaN(invoiceNumber) || invoiceNumber<=0) return Swal.fire("Factura inválida","Número requerido","error");
+            let existingSale = db.sales.find(s=>s.invoiceNumber === invoiceNumber);
+            if(existingSale) return Swal.fire("Error","N° factura repetido, edite el número","error");
+            let customerName = document.getElementById('clienteNombre').value.trim();
+            let customerPhone = document.getElementById('clienteTelefono').value.trim();
+            let customerZone = document.getElementById('clienteZona').value;
+            let customerAddress = document.getElementById('direccionCliente').value.trim() + ", " + customerZone;
+            let seller = document.getElementById('vendedorNombre').value.trim() || "Vendedor";
+            let paymentMethod = document.getElementById('metodoPago').value;
+            if(!customerName) return Swal.fire("Cliente requerido","Ingrese nombre","warning");
+            // Verificar stock nuevamente antes de vender
+            for(let item of carrito){
+                let prod = db.products.find(p=>p.id===item.productId);
+                if(!prod || prod.stock < item.quantity) return Swal.fire("Stock insuficiente",`${item.name} solo ${prod?.stock||0} disponibles`,"error");
             }
-            item.cant = nuevo;
-            renderCarrito();
-        };
-
-        window.editarPrecio = (index, nuevoPrecio) => {
-            let precio = parseFloat(nuevoPrecio);
-            if (isNaN(precio) || precio < 0) precio = 0;
-            carrito[index].price = precio;
-            renderCarrito();
-        };
-
-        window.eliminarDelCarrito = (index) => {
-            carrito.splice(index, 1);
-            renderCarrito();
-        };
-
-        // Anular venta: devuelve stock y limpia carrito
-        window.anularVenta = () => {
-            if (carrito.length === 0) { alert('No hay venta que anular'); return; }
-            if (confirm('¿Anular la venta actual? Se devolverá el stock.')) {
-                // Devolver stock (solo si se había descontado, pero en este diseño no se descuenta hasta concretar)
-                // Para anular antes de concretar, simplemente vaciamos carrito
-                carrito = [];
-                renderCarrito();
+            // Deducir stock
+            for(let item of carrito){
+                let prod = db.products.find(p=>p.id===item.productId);
+                prod.stock -= item.quantity;
             }
-        };
-
-        // ---------- CONCRETAR VENTA ----------
-        window.concretarVenta = async function() {
-            const cliente = document.getElementById('clienteNombre').value.trim();
-            const telefono = document.getElementById('telefonoWSP').value.trim();
-            const vendedor = document.getElementById('vendedor').value.trim() || 'Wilson M.';
-            const metodo = document.getElementById('metodoPago').value;
-            const direccion = document.getElementById('direccion').value.trim();
-            const numFactura = document.getElementById('numeroFactura').value.trim() || ('FAC-' + Date.now().toString().slice(-6));
-
-            if (!cliente) { alert('Debes ingresar el nombre del cliente'); return; }
-            if (!telefono) { alert('Debes ingresar el teléfono para enviar la nota'); return; }
-            if (carrito.length === 0) { alert('No hay productos en el carrito'); return; }
-
-            // Verificar stock suficiente (puede haber cambiado desde que se agregó al carrito)
-            for (let item of carrito) {
-                const prod = products.find(p => p.id === item.id);
-                if (!prod || prod.stock < item.cant) {
-                    alert(`Stock insuficiente para ${item.desc}. Quedan ${prod?.stock || 0} unidades.`);
-                    return;
-                }
+            let totalUSD = carrito.reduce((s,i)=>s+(i.quantity*i.unitPrice),0);
+            let newSale = {
+                id: Date.now(), invoiceNumber, date: new Date().toISOString(), customerName, customerPhone, customerAddress, seller, paymentMethod, totalUSD,
+                items: carrito.map(i=>({ productId:i.productId, code:i.code, name:i.name, quantity:i.quantity, unitPriceUSD:i.unitPrice, total:i.quantity*i.unitPrice }))
+            };
+            db.sales.push(newSale);
+            // Actualizar cliente en base de datos
+            let existingCustomer = db.customers.find(c=>c.phone === customerPhone || (c.name.toLowerCase()===customerName.toLowerCase()));
+            if(!existingCustomer) db.customers.push({ id:Date.now(), name:customerName, phone:customerPhone, address:customerAddress, zones:customerZone, totalPurchases:totalUSD, debts:0 });
+            else { existingCustomer.totalPurchases = (existingCustomer.totalPurchases||0)+totalUSD; }
+            // Si es fiado credito crear deuda
+            if(paymentMethod === 'fiado credito'){
+                let newDebt = { id:Date.now(), saleId:newSale.id, customerName, customerPhone, totalDebt:totalUSD, remainingDebt:totalUSD, status:'pendiente', date:new Date().toISOString(), products: carrito.map(i=>i.name).join(", ") };
+                db.debts.push(newDebt);
+                let cust = db.customers.find(c=>c.phone===customerPhone||c.name===customerName);
+                if(cust) cust.debts = (cust.debts||0)+totalUSD;
             }
-
-            // Fecha y hora actual
-            const fecha = new Date();
-            const fechaStr = fecha.toLocaleString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-
-            // Calcular total
-            let totalVenta = carrito.reduce((acc, it) => acc + it.price * it.cant, 0);
-
-            // Registrar cada línea en ventasHistoricas
-            carrito.forEach(item => {
-                ventasHistoricas.push({
-                    fecha: fechaStr,
-                    factura: numFactura,
-                    producto: item.desc,
-                    cantidad: item.cant,
-                    precioUnitario: item.price,
-                    cliente: cliente,
-                    metodo: metodo,
-                    vendedor: vendedor,
-                    total: item.price * item.cant,
-                    codigo: item.id
-                });
-            });
-
-            // Registrar cabecera de venta (para fiados y reportes consolidados)
-            ventasCabecera.push({
-                factura: numFactura,
-                fecha: fechaStr,
-                cliente: cliente,
-                telefono: telefono,
-                direccion: direccion,
-                vendedor: vendedor,
-                metodo: metodo,
-                items: carrito.map(i => ({ ...i })),
-                total: totalVenta
-            });
-
-            // Descontar stock
-            carrito.forEach(item => {
-                const prod = products.find(p => p.id === item.id);
-                prod.stock -= item.cant;
-            });
-
-            // Manejo de clientes
-            let clienteExistente = customers.find(c => c.nombre.toLowerCase() === cliente.toLowerCase());
-            if (!clienteExistente) {
-                clienteExistente = { nombre: cliente, tel: telefono, deuda: 0, compras: [] };
-                customers.push(clienteExistente);
-            } else {
-                clienteExistente.tel = telefono;
-            }
-            // Agregar compra al cliente
-            clienteExistente.compras.push({
-                fecha: fechaStr,
-                factura: numFactura,
-                items: carrito.map(i => ({ desc: i.desc, cant: i.cant, precio: i.price })),
-                total: totalVenta,
-                metodo: metodo
-            });
-
-            // Si el método es Fiado Crédito, registrar en fiados (una sola entrada por venta)
-            if (metodo === 'Fiado Crédito') {
-                fiados.push({
-                    deudor: cliente,
-                    tel: telefono,
-                    factura: numFactura,
-                    fecha: fechaStr,
-                    totalDeuda: totalVenta,
-                    estado: 'Pendiente',
-                    detalles: carrito.map(i => ({ producto: i.desc, cantidad: i.cant, precio: i.price }))
-                });
-                clienteExistente.deuda = (clienteExistente.deuda || 0) + totalVenta;
-            }
-
-            // Guardar en localStorage
-            syncAll();
-
-            // Generar imagen de la boleta
-            generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, carrito, totalVenta, fechaStr, numFactura);
-
-            // Enviar WhatsApp con el texto
-            let msj = `*NOTA DE VENTA - Escamilla B. Wilson M.*\n`;
-            msj += `Factura N°: ${numFactura}\n`;
-            msj += `Fecha: ${fechaStr}\n`;
-            msj += `Cliente: ${cliente}\n`;
-            msj += `Dirección: ${direccion || 'No especificada'}\n`;
-            carrito.forEach(i => msj += `${i.desc} x${i.cant} = $${(i.price*i.cant).toFixed(2)}\n`);
-            msj += `Total: $${totalVenta.toFixed(2)}\n`;
-            msj += `Método de pago: ${metodo}\n`;
-            msj += `Vendedor: ${vendedor}\n`;
-            msj += `Gracias por su compra.`;
-            const telClean = telefono.replace(/\D/g,'');
-            window.open(`https://wa.me/${telClean}?text=${encodeURIComponent(msj)}`, '_blank');
-
-            // Limpiar carrito
+            saveAll();
+            // Generar imagen nota de venta y enviar whatsapp
+            await generarImagenNotaYEnviar(newSale, customerPhone);
+            // Limpiar carrito y resetear
             carrito = [];
             renderCarrito();
-            renderProductos();
-            renderInventario();
-            renderFiados();
-            renderClientes();
-            renderReportes();
-            actualizarDatalistClientes();
+            document.getElementById('clienteNombre').value = '';
+            document.getElementById('clienteTelefono').value = '';
+            document.getElementById('direccionCliente').value = '';
+            document.getElementById('facturaNumero').value = getNextInvoiceNumber();
+            renderProductosGrid('');
+            Swal.fire("Venta exitosa","Stock actualizado y nota generada","success");
+            if(activeTab==='ventas') renderVentas();
         };
-
-        // Generar imagen de boleta con canvas
-        function generarImagenBoleta(cliente, telefono, direccion, vendedor, metodo, items, total, fecha, factura) {
-            const canvas = document.getElementById('boletaCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 450;
-            canvas.height = 600;
-
-            // Fondo blanco
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Borde decorativo
-            ctx.strokeStyle = '#0f3b5e';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(10, 10, canvas.width-20, canvas.height-20);
-
-            // Membrete
-            ctx.fillStyle = '#0f3b5e';
-            ctx.font = 'bold 22px Inter, sans-serif';
-            ctx.fillText('Escamilla B. Wilson M.', 30, 60);
-            ctx.font = '12px Inter';
-            ctx.fillStyle = '#4b5563';
-            ctx.fillText('Urb. Prebo · Valencia · 0414-4372956', 30, 90);
-
-            // Marca de agua
-            ctx.globalAlpha = 0.1;
-            ctx.font = 'bold 50px Inter';
-            ctx.fillStyle = '#2c6e9c';
-            ctx.save();
-            ctx.translate(180, 300);
-            ctx.rotate(-0.3);
-            ctx.fillText('NOTA DE VENTA', 0, 0);
-            ctx.restore();
-            ctx.globalAlpha = 1;
-
-            // Línea divisoria
-            ctx.strokeStyle = '#ccc';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(20, 120);
-            ctx.lineTo(430, 120);
-            ctx.stroke();
-
-            // Datos de la venta
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold 11px Inter';
-            ctx.fillText(`Factura: ${factura}`, 30, 145);
-            ctx.fillText(`Fecha: ${fecha}`, 30, 165);
-            ctx.fillText(`Cliente: ${cliente}`, 30, 185);
-            ctx.fillText(`Tel: ${telefono}`, 30, 205);
-            ctx.fillText(`Dirección: ${direccion || 'N/A'}`, 30, 225);
-            ctx.fillText(`Vendedor: ${vendedor}`, 30, 245);
-            ctx.fillText(`Método: ${metodo}`, 30, 265);
-
-            // Encabezado de tabla
-            ctx.font = 'bold 10px Inter';
-            ctx.fillStyle = '#0f3b5e';
-            ctx.fillText('Producto', 30, 295);
-            ctx.fillText('Cant', 230, 295);
-            ctx.fillText('P/U', 290, 295);
-            ctx.fillText('Total', 350, 295);
-            ctx.strokeStyle = '#a0c4e2';
-            ctx.beginPath();
-            ctx.moveTo(20, 300);
-            ctx.lineTo(430, 300);
-            ctx.stroke();
-
-            // Productos
-            let y = 315;
-            ctx.font = '10px Inter';
-            ctx.fillStyle = '#1e293b';
-            items.forEach(item => {
-                ctx.fillText(item.desc.substring(0, 18), 30, y);
-                ctx.fillText(item.cant.toString(), 240, y);
-                ctx.fillText('$'+item.price.toFixed(2), 290, y);
-                ctx.fillText('$'+(item.price*item.cant).toFixed(2), 350, y);
-                y += 18;
-            });
-
-            // Total
-            ctx.font = 'bold 16px Inter';
-            ctx.fillStyle = '#0b3b2c';
-            ctx.fillText(`TOTAL: $${total.toFixed(2)}`, 270, y+20);
-
-            // Mostrar modal
-            document.getElementById('modalBoleta').style.display = 'flex';
+        
+        async function generarImagenNotaYEnviar(sale, phoneNumber){
+            let tempDiv = document.createElement('div');
+            tempDiv.className = "recibo-card p-6 max-w-md mx-auto watermark-bg relative bg-white shadow-xl";
+            let itemsHtml = sale.items.map(it=>`<tr><td class="border p-1 text-xs">${it.code}</td><td class="border p-1">${it.name}</td><td class="border p-1 text-center">${it.quantity}</td><td class="border p-1 text-right">$${it.unitPriceUSD.toFixed(2)}</td><td class="border p-1 text-right">$${it.total.toFixed(2)}</td></tr>`).join('');
+            tempDiv.innerHTML = `<div class="text-center border-b pb-2"><h2 class="text-xl font-bold">Escamilla B. Wilson M.</h2><p class="text-xs">Valencia Edo Carabobo | Tel: 0414-4372956 / 0412-4749513</p><p class="text-xs">📍 ${sale.customerAddress}</p></div><div class="text-right text-xs">Factura N°: ${sale.invoiceNumber} | Fecha: ${new Date(sale.date).toLocaleString()}</div><div><p><strong>Cliente:</strong> ${sale.customerName} | Vendedor: ${sale.seller}</p></div><table class="w-full text-sm mt-2 border"><thead><tr><th>Código</th><th>Producto</th><th>Cant</th><th>Precio USD</th><th>Subtotal</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="text-right font-bold mt-2">TOTAL: $${sale.totalUSD.toFixed(2)}  |  Método: ${sale.paymentMethod}</div><div class="text-center text-xs mt-3">¡Gracias por su compra!  *Nota de venta*</div>`;
+            document.body.appendChild(tempDiv);
+            try{
+                let canvas = await html2canvas(tempDiv, {scale:2, backgroundColor:'#ffffff'});
+                let imgData = canvas.toDataURL('image/png');
+                let link = document.createElement('a');
+                link.download = `factura_${sale.invoiceNumber}.png`;
+                link.href = imgData;
+                link.click();
+                if(phoneNumber && phoneNumber.trim()){
+                    let whatsappMsg = `*Escamilla B. Wilson M.*%0A📄 Factura N°${sale.invoiceNumber}%0ACliente: ${sale.customerName}%0ATotal: $${sale.totalUSD.toFixed(2)}%0A¡Gracias por su compra! Adjunto imagen de su nota de venta.`;
+                    window.open(`https://wa.me/${phoneNumber.replace(/[^0-9]/g,'')}?text=${whatsappMsg}`, '_blank');
+                }
+            }catch(e){console.error(e);}
+            document.body.removeChild(tempDiv);
         }
-
-        window.cerrarModalBoleta = () => {
-            document.getElementById('modalBoleta').style.display = 'none';
+        
+        window.verHistorialProducto = (prodId) => {
+            let prod = db.products.find(p=>p.id===prodId);
+            if(!prod) return;
+            let ventasRel = db.sales.filter(s=> s.items.some(it=>it.productId===prodId));
+            document.getElementById('historialProductoNombre').innerText = prod.name;
+            let cont = document.getElementById('listaHistorialProducto');
+            cont.innerHTML = ventasRel.map(v=> `<div class="border p-2 rounded"><b>Fecha:</b> ${new Date(v.date).toLocaleString()} | <b>Cliente:</b> ${v.customerName} | <b>Monto USD:</b> $${v.totalUSD.toFixed(2)}<br><b>Cantidad vendida:</b> ${v.items.find(i=>i.productId===prodId)?.quantity || 0} unidades | <b>Método:</b> ${v.paymentMethod}</div>`).join('');
+            if(ventasRel.length===0) cont.innerHTML='<div class="text-gray-400">Sin historial de ventas</div>';
+            document.getElementById('modalHistorial').classList.remove('hidden'); document.getElementById('modalHistorial').classList.add('flex');
         };
-
-        window.descargarBoleta = () => {
-            const canvas = document.getElementById('boletaCanvas');
-            const link = document.createElement('a');
-            link.download = `boleta_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        };
-
-        // ---------- FUNCIONES DE ALMACÉN ----------
-        function renderInventario() {
-            const container = document.getElementById('inventarioLista');
-            if (products.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">📦 No hay productos registrados.</div>';
-                return;
-            }
-            let html = '<table><tr><th>Código</th><th>Producto</th><th>Stock</th><th>Precio $</th><th>Fecha Ingreso</th></tr>';
-            products.forEach(p => html += `<tr><td>${p.id}</td><td>${p.desc}</td><td>${p.stock}</td><td>$${p.price.toFixed(2)}</td><td>${p.fechaIngreso || 'N/A'}</td></tr>`);
-            html += '</table>';
-            container.innerHTML = html;
+        window.cerrarModalHistorial = () => { document.getElementById('modalHistorial').classList.add('hidden'); };
+        
+        // ---------- ALMACEN ----------
+        function renderAlmacen(){
+            let html = `<div class="bg-white p-4 rounded-2xl shadow"><div class="flex justify-between"><h2 class="text-xl font-bold"><i class="fas fa-warehouse"></i> Gestión de Inventario</h2><button onclick="mostrarModalProducto()" class="bg-blue-600 text-white px-3 py-1 rounded"><i class="fas fa-plus"></i> Nuevo Producto</button></div><div class="flex gap-2 my-3"><input type="text" id="filtroCategoriaAlm" placeholder="Filtrar por categoría" class="border p-1 rounded"><button onclick="filtrarAlmacen()" class="bg-gray-200 px-2 rounded">Filtrar</button><button onclick="exportarInventarioExcel()" class="bg-green-600 text-white px-2 rounded"><i class="fas fa-file-excel"></i> Excel Inventario</button></div><div id="listaProductosAlm" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[60vh] overflow-auto"></div></div>`;
+            document.getElementById('contenidoPrincipal').innerHTML = html;
+            renderListaProductosAlm('');
         }
-
-        window.registrarProducto = () => {
-            let nombre = document.getElementById('nuevoNombre').value.trim();
-            if (!nombre) { alert('Debes escribir un nombre'); return; }
-            let cat = document.getElementById('nuevaCategoria').value;
-            let stock = parseInt(document.getElementById('nuevoStock').value) || 0;
-            let precio = parseFloat(document.getElementById('nuevoPrecio').value) || 0;
-            if (stock < 0) stock = 0;
-            if (precio < 0) precio = 0;
-            let newId = 'P' + Date.now().toString().slice(-6);
-            let fechaIngreso = new Date().toLocaleString('es-VE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-            products.push({ 
-                id: newId, 
-                desc: nombre, 
-                stock: stock, 
-                price: precio, 
-                cat: cat,
-                fechaIngreso: fechaIngreso
-            });
-            document.getElementById('nuevoNombre').value = '';
-            document.getElementById('nuevoStock').value = '10';
-            document.getElementById('nuevoPrecio').value = '5.00';
-            renderInventario();
-            renderProductos();
-            syncAll();
-        };
-
-        window.agregarCategoriaPrompt = () => {
-            let nueva = prompt('Nueva categoría:');
-            if (nueva) {
-                let select = document.getElementById('nuevaCategoria');
-                let opt = document.createElement('option');
-                opt.text = nueva;
-                opt.value = nueva;
-                select.add(opt);
-            }
-        };
-
-        // ---------- HISTORIAL DE PRODUCTO (con cantidades) ----------
-        window.verHistorial = (id) => {
-            const prod = products.find(p => p.id === id);
-            if (!prod) return;
-            document.getElementById('modalProductoNombre').innerText = `Historial: ${prod.desc}`;
-            const historial = ventasHistoricas.filter(v => v.producto === prod.desc);
-            if (historial.length === 0) {
-                document.getElementById('historialDetalle').innerHTML = '<p>📭 Este producto aún no tiene ventas.</p>';
-            } else {
-                let html = '<table><tr><th>Fecha</th><th>Factura</th><th>Cliente</th><th>Cantidad</th><th>P/U</th><th>Total</th></tr>';
-                historial.forEach(h => {
-                    html += `<tr><td>${h.fecha}</td><td>${h.factura}</td><td>${h.cliente}</td><td>${h.cantidad}</td><td>$${h.precioUnitario.toFixed(2)}</td><td>$${h.total.toFixed(2)}</td></tr>`;
-                });
-                html += '</table>';
-                document.getElementById('historialDetalle').innerHTML = html;
-            }
-            document.getElementById('modalHistorial').style.display = 'flex';
-        };
-
-        window.cerrarModal = () => document.getElementById('modalHistorial').style.display = 'none';
-
-        // ---------- ZONAS / DIRECCIÓN ----------
-        window.agregarZonaPrompt = () => {
-            let zona = prompt('Nueva zona/dirección:');
-            if (zona) document.getElementById('direccion').value = zona;
-        };
-
-        // ---------- FIADOS (agrupado por factura) ----------
-        function renderFiados() {
-            const container = document.getElementById('fiadosLista');
-            if (fiados.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">✅ No hay fiados pendientes.</div>';
-                return;
-            }
-            let html = '';
-            fiados.forEach(f => {
-                let detalles = f.detalles.map(d => `${d.producto} (x${d.cantidad})`).join(', ');
-                html += `<div class="cliente-item ${f.estado === 'Pendiente' ? 'deudor-alerta' : ''}">
-                    <strong>${f.deudor}</strong> - ${f.tel}<br>
-                    Factura: ${f.factura} | Fecha: ${f.fecha}<br>
- Productos: ${detalles}<br>
-                    <strong>Deuda total: $${f.totalDeuda.toFixed(2)}</strong> | Estado: ${f.estado}
-                    <button onclick="pagarFiado('${f.factura}')">Pagar</button>
-                </div>`;
-            });
-            container.innerHTML = html;
+        function renderListaProductosAlm(categoriaFiltro){
+            let prods = categoriaFiltro ? db.products.filter(p=>p.category===categoriaFiltro) : db.products;
+            let div = document.getElementById('listaProductosAlm');
+            div.innerHTML = prods.map(p=>`<div class="border rounded-xl p-3 flex justify-between items-center"><div><div class="font-bold">${p.name}</div><div class="text-xs">Código: ${p.code} | Stock: ${p.stock} | $${p.price_usd} | Cat: ${p.category}</div>${p.image ? `<img src="${p.image}" class="w-12 h-12 object-cover mt-1">` : ''}</div><div><button onclick="editarStockProducto(${p.id})" class="bg-yellow-500 text-white px-2 py-1 rounded text-sm"><i class="fas fa-edit"></i> Stock</button><button onclick="eliminarProducto(${p.id})" class="bg-red-500 text-white px-2 py-1 rounded text-sm ml-1"><i class="fas fa-trash"></i></button></div></div>`).join('');
         }
-
-        window.pagarFiado = (factura) => {
-            let monto = prompt('Monto a pagar (parcial/total):', '0');
-            if (monto && !isNaN(parseFloat(monto))) {
-                alert(`Pago de $${monto} aplicado a factura ${factura} (simulado). En sistema real se actualizaría.`);
-                // Aquí se podría modificar el estado del fiado
-            }
+        window.mostrarModalProducto = async () => {
+            let cats = db.categories.join(",");
+            let newCat = prompt("Categoría existente o nueva (separado por comas para nueva):\nActuales: "+cats, "");
+            if(!newCat) return;
+            let categoriaFinal = newCat;
+            if(!db.categories.includes(newCat)){ db.categories.push(newCat); localStorage.setItem('pos_categories',JSON.stringify(db.categories)); }
+            let name = prompt("Nombre producto");
+            let price = parseFloat(prompt("Precio USD"));
+            let stock = parseInt(prompt("Stock inicial"));
+            if(!name || isNaN(price) || isNaN(stock)) return;
+            let code = "PROD-" + String(db.products.length+101).padStart(4,'0');
+            let newProduct = { id: Date.now(), code, name, category:categoriaFinal, price_usd:price, stock, image:null, createdDate:new Date().toISOString() };
+            db.products.push(newProduct);
+            saveAll();
+            renderAlmacen();
         };
-
+        window.editarStockProducto = (id) => { let prod=db.products.find(p=>p.id===id); let nuevoStock=parseInt(prompt("Nuevo stock:", prod.stock)); if(!isNaN(nuevoStock)){ prod.stock=nuevoStock; saveAll(); renderAlmacen(); if(activeTab==='ventas') renderVentas(); } };
+        window.eliminarProducto = (id) => { if(confirm("Eliminar producto?")){ db.products=db.products.filter(p=>p.id!==id); saveAll(); renderAlmacen(); if(activeTab==='ventas') renderVentas(); } };
+        function filtrarAlmacen(){ let filtro=document.getElementById('filtroCategoriaAlm').value; renderListaProductosAlm(filtro); }
+        function exportarInventarioExcel(){ let ws = XLSX.utils.json_to_sheet(db.products.map(p=>({Codigo:p.code, Producto:p.name, Categoria:p.category, Stock:p.stock, PrecioUSD:p.price_usd}))); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Inventario"); XLSX.writeFile(wb,"inventario_escamilla.xlsx");}
+        
+        // ---------- FIADOS ----------
+        function renderFiados(){ let deudasPorCliente={}; db.debts.forEach(d=>{ if(d.remainingDebt>0){ if(!deudasPorCliente[d.customerPhone]) deudasPorCliente[d.customerPhone]={nombre:d.customerName, telefono:d.customerPhone, deudaTotal:0, detalles:[]}; deudasPorCliente[d.customerPhone].deudaTotal+=d.remainingDebt; deudasPorCliente[d.customerPhone].detalles.push(d); } }); let html = `<div class="bg-white p-4 rounded-2xl shadow"><h2 class="font-bold text-xl">Cuentas por Cobrar (Fiados)</h2><button onclick="exportarFiadosExcel()" class="bg-green-600 text-white px-2 py-1 rounded my-2"><i class="fas fa-download"></i> Excel Fiados</button><div id="listaFiados" class="space-y-2"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=html; let cont=document.getElementById('listaFiados'); cont.innerHTML=Object.values(deudasPorCliente).map(c=>`<div class="border p-3 rounded flex justify-between"><div><b>${c.nombre}</b> | 📞 ${c.telefono} | Deuda: $${c.deudaTotal.toFixed(2)}</div><button onclick="pagarFiadoCliente('${c.telefono}')" class="bg-blue-600 text-white px-3 py-1 rounded">Pagar</button></div>`).join(''); }
+        window.pagarFiadoCliente = (telefono) => { let deudasCliente = db.debts.filter(d=>d.customerPhone===telefono && d.remainingDebt>0); let totalDeuda = deudasCliente.reduce((a,b)=>a+b.remainingDebt,0); Swal.fire({title:`Deuda total $${totalDeuda.toFixed(2)}`,input:'number',text:'Monto a pagar (USD)',showCancelButton:true}).then(res=>{ if(res.value){ let monto=parseFloat(res.value); if(monto>0){ let restante=monto; for(let deuda of deudasCliente){ if(restante<=0) break; if(deuda.remainingDebt>=restante){ deuda.remainingDebt-=restante; restante=0; }else{ restante-=deuda.remainingDebt; deuda.remainingDebt=0; } } saveAll(); renderFiados(); Swal.fire("Pago registrado","Deuda actualizada","success"); } } }); };
+        function exportarFiadosExcel(){ let data = db.debts.filter(d=>d.remainingDebt>0).map(d=>({Cliente:d.customerName,Telefono:d.customerPhone,DeudaUSD:d.remainingDebt,Productos:d.products,Fecha:d.date})); let ws=XLSX.utils.json_to_sheet(data); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Fiados"); XLSX.writeFile(wb,"reporte_fiados.xlsx");}
         // ---------- REPORTES ----------
-        function renderReportes() {
-            const tbody = document.getElementById('reportesBody');
-            if (ventasHistoricas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="mensaje-vacio">No hay ventas registradas aún.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = ventasHistoricas.map(v => `<tr>
-                <td>${v.fecha}</td>
-                <td>${v.factura}</td>
-                <td>${v.producto}</td>
-                <td>${v.cantidad}</td>
-                <td>${v.cliente}</td>
-                <td>${v.metodo}</td>
-                <td>${v.vendedor}</td>
-                <td>$${v.total.toFixed(2)}</td>
-            </tr>`).join('');
-        }
-
-        // ---------- CLIENTES (con filtro y alerta de deuda) ----------
-        function renderClientes() {
-            const container = document.getElementById('clientesLista');
-            const filtro = document.getElementById('filtroClientes')?.value.toLowerCase() || '';
-            if (customers.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">👥 No hay clientes registrados.</div>';
-                return;
-            }
-            let filtrados = customers.filter(c => c.nombre.toLowerCase().includes(filtro));
-            let html = '';
-            filtrados.forEach(c => {
-                html += `<div class="cliente-item ${c.deuda > 0 ? 'deudor-alerta' : ''}" onclick="verCliente('${c.nombre}')">
-                    <strong>${c.nombre}</strong> - ${c.tel} ${c.deuda > 0 ? '⚠️ Deuda: $'+c.deuda.toFixed(2) : ''}
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        window.verCliente = (nombre) => {
-            const cliente = customers.find(c => c.nombre === nombre);
-            if (!cliente) return;
-            document.getElementById('modalClienteNombre').innerText = `Compras de ${cliente.nombre}`;
-            let html = '';
-            if (cliente.compras.length === 0) {
-                html = '<p>No hay compras registradas.</p>';
-            } else {
-                html = '<table><tr><th>Fecha</th><th>Factura</th><th>Productos</th><th>Total</th><th>Método</th></tr>';
-                cliente.compras.forEach(comp => {
-                    let prod = comp.items.map(i => `${i.desc} x${i.cant}`).join(', ');
-                    html += `<tr><td>${comp.fecha}</td><td>${comp.factura}</td><td>${prod}</td><td>$${comp.total.toFixed(2)}</td><td>${comp.metodo}</td></tr>`;
-                });
-                html += '</table>';
-            }
-            document.getElementById('clienteComprasDetalle').innerHTML = html;
-            document.getElementById('modalCliente').style.display = 'flex';
-        };
-
-        window.cerrarModalCliente = () => document.getElementById('modalCliente').style.display = 'none';
-
-        // Actualizar datalist de clientes en ventas
-        function actualizarDatalistClientes() {
-            const datalist = document.getElementById('clientesList');
-            datalist.innerHTML = customers.map(c => `<option value="${c.nombre}">`).join('');
-        }
-
-        // ---------- PROVEEDORES (simplificado) ----------
-        function renderProveedores() {
-            const container = document.getElementById('proveedoresLista');
-            if (proveedores.length === 0) {
-                container.innerHTML = '<div class="mensaje-vacio">🚚 No hay proveedores registrados. Puedes agregarlos manualmente.</div>';
-                return;
-            }
-            container.innerHTML = proveedores.map(p => `<div class="proveedor-item">${p.nombre} - ${p.contacto} | Deuda: $${(p.deuda || 0).toFixed(2)}</div>`).join('');
-        }
-
-        // ---------- EXCEL SIMULADO ----------
-        window.descargarExcel = (tipo) => {
-            let mensaje = `Se descargaría un archivo Excel con membrete de Escamilla B. Wilson M. (simulado)`;
-            if (tipo === 'ventas') mensaje += ' con el reporte de ventas';
-            else if (tipo === 'fiados') mensaje += ' con la lista de fiados';
-            else if (tipo === 'almacen') mensaje += ' con el inventario actual';
-            else if (tipo === 'inventario') mensaje += ' con el inventario del día';
-            mensaje += '.\nEnvío simulado a jhoncuenta2@gmail.com (integración con Drive pendiente).';
-            alert(mensaje);
-        };
-
-        // ---------- SINCRONIZACIÓN LOCALSTORAGE ----------
-        function syncAll() {
-            localStorage.setItem('products', JSON.stringify(products));
-            localStorage.setItem('customers', JSON.stringify(customers));
-            localStorage.setItem('fiados', JSON.stringify(fiados));
-            localStorage.setItem('proveedores', JSON.stringify(proveedores));
-            localStorage.setItem('ventasHistoricas', JSON.stringify(ventasHistoricas));
-            localStorage.setItem('ventasCabecera', JSON.stringify(ventasCabecera));
-        }
-
-        function loadFromStorage() {
-            const p = localStorage.getItem('products');
-            if (p) products = JSON.parse(p);
-            const c = localStorage.getItem('customers');
-            if (c) customers = JSON.parse(c);
-            const f = localStorage.getItem('fiados');
-            if (f) fiados = JSON.parse(f);
-            const pr = localStorage.getItem('proveedores');
-            if (pr) proveedores = JSON.parse(pr);
-            const v = localStorage.getItem('ventasHistoricas');
-            if (v) ventasHistoricas = JSON.parse(v);
-            const vc = localStorage.getItem('ventasCabecera');
-            if (vc) ventasCabecera = JSON.parse(vc);
-        }
-
-        loadFromStorage();
-        renderProductos();
-        renderCarrito();
-        renderInventario();
-        renderFiados();
-        renderReportes();
-        renderClientes();
-        renderProveedores();
-        actualizarDatalistClientes();
-
-        // Evento para filtro de clientes
-        document.getElementById('filtroClientes')?.addEventListener('input', renderClientes);
-
-        // Sincronización entre pestañas
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'products') products = JSON.parse(e.newValue) || [];
-            if (e.key === 'customers') customers = JSON.parse(e.newValue) || [];
-            if (e.key === 'fiados') fiados = JSON.parse(e.newValue) || [];
-            if (e.key === 'proveedores') proveedores = JSON.parse(e.newValue) || [];
-            if (e.key === 'ventasHistoricas') ventasHistoricas = JSON.parse(e.newValue) || [];
-            const active = document.querySelector('.section.active')?.id;
-            if (active === 'ventas') renderProductos();
-            if (active === 'almacen') renderInventario();
-            if (active === 'fiados') renderFiados();
-            if (active === 'cierres') renderReportes();
-            if (active === 'clientes') renderClientes();
-            if (active === 'proveedores') renderProveedores();
-        });
+        function renderReportes(){ let html=`<div class="bg-white p-4 rounded-2xl shadow"><h2 class="font-bold">Reportes de Ventas</h2><input type="date" id="fechaFiltro" class="border p-1 my-2"><button onclick="cargarReportePorFecha()" class="bg-blue-600 text-white px-2 py-1 rounded">Filtrar</button><button onclick="exportarReporteVentasExcel()" class="bg-green-600 text-white px-2 py-1 rounded ml-2"><i class="fas fa-download"></i> Excel Ventas</button><div id="tablaReportes" class="overflow-auto mt-3"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=html; cargarReportePorFecha(); }
+        function cargarReportePorFecha(){ let fecha=document.getElementById('fechaFiltro').value; let ventasFiltradas = fecha ? db.sales.filter(s=>s.date.startsWith(fecha)) : db.sales; let tabla=`<table class="w-full border text-sm"><thead><tr><th>Factura</th><th>Fecha/Hora</th><th>Cliente</th><th>Vendedor</th><th>Método</th><th>Total USD</th></tr></thead><tbody>${ventasFiltradas.map(v=>`<tr><td>${v.invoiceNumber}</td><td>${new Date(v.date).toLocaleString()}</td><td>${v.customerName}</td><td>${v.seller}</td><td>${v.paymentMethod}</td><td>$${v.totalUSD}</td></tr>`).join('')}</tbody></table>`; document.getElementById('tablaReportes').innerHTML=tabla; }
+        function exportarReporteVentasExcel(){ let ws=XLSX.utils.json_to_sheet(db.sales.map(s=>({Factura:s.invoiceNumber,Fecha:s.date,Cliente:s.customerName,Vendedor:s.seller,Metodo:s.paymentMethod,TotalUSD:s.totalUSD}))); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Ventas"); XLSX.writeFile(wb,"reporte_ventas.xlsx");}
+        // ---------- CLIENTES Y PROVEEDORES (simplificado)----------
+        function renderClientes(){ let clientesHtml = `<div class="bg-white p-4 rounded-2xl"><h2 class="font-bold">Base de Clientes</h2><input type="text" id="filtroCliente" placeholder="Buscar nombre" class="border p-1 w-full my-2"><div id="listaClientes"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=clientesHtml; filtrarClientes(); document.getElementById('filtroCliente').addEventListener('input',filtrarClientes); }
+        function filtrarClientes(){ let texto=document.getElementById('filtroCliente').value.toLowerCase(); let filtrados=db.customers.filter(c=>c.name.toLowerCase().includes(texto)); let div=document.getElementById('listaClientes'); div.innerHTML=filtrados.map(c=>`<div class="border p-2 rounded mb-2 ${(c.debts>0)?'bg-red-100':''}"><b>${c.name}</b> | 📞${c.phone} | Compras: $${c.totalPurchases||0} | Deuda: $${c.debts||0}<button onclick="verDetalleCliente('${c.phone}')" class="bg-gray-500 text-white px-2 py-0 rounded text-xs ml-2">Historial</button></div>`).join(''); }
+        window.verDetalleCliente = (phone)=>{ let compras=db.sales.filter(s=>s.customerPhone===phone); Swal.fire({title:"Historial Compras",html:compras.map(s=>`Factura ${s.invoiceNumber}: $${s.totalUSD} - ${new Date(s.date).toLocaleDateString()}`).join('<br>')||"Sin compras"}); };
+        function renderProveedores(){ let html=`<div class="bg-white p-4 rounded-2xl"><h2>Proveedores</h2><button onclick="agregarProveedor()" class="bg-blue-600 text-white px-3 py-1 rounded">+ Nuevo</button><div id="listaProv"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=html; renderListaProv(); }
+        function renderListaProv(){ let div=document.getElementById('listaProv'); div.innerHTML=db.suppliers.map(s=>`<div class="border p-2 my-1">${s.name} - ${s.phone} | Deuda: $${s.debt||0}</div>`).join(''); }
+        window.agregarProveedor=()=>{ let nom=prompt("Nombre proveedor"); let tel=prompt("Teléfono"); if(nom) { db.suppliers.push({id:Date.now(),name:nom,phone:tel,debt:0}); saveAll(); renderProveedores(); } };
+        
+        // Inicializar todo
+        loadData();
+        document.querySelector('.max-w-\\[1600px\\]').addEventListener('click', (e) => { if(e.target.classList.contains('tab-btn')){ activeTab = e.target.dataset.tab; render(); } });
+        render();
     </script>
 </body>
 </html>
