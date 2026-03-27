@@ -3,367 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>POS Escamilla B. Wilson M. | Sistema de Ventas</title>
-    <!-- Tailwind + Font Awesome + Librerías profesionales -->
+    <title>POS System | Escamilla B. Wilson M.</title>
+    <!-- Tailwind + Font Awesome + Librerías esenciales -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Chart.js, SheetJS, html2canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* Estilos personalizados para scroll y detalles */
-        .bg-glass { background: rgba(255,255,255,0.95);}
-        .product-card:hover { transform: translateY(-3px); transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.1);}
-        .scroll-products { max-height: 60vh; overflow-y: auto; }
-        .active-tab { border-bottom: 3px solid #3b82f6; color: #1e3a8a; font-weight: bold; background: #eff6ff; }
-        .watermark-bg {
+        /* transiciones suaves y estilo de alertas */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fade 0.25s ease; }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+        .stock-alert { background-color: #fee2e2; border-left: 5px solid #ef4444; }
+        .card-hover:hover { transform: translateY(-2px); transition: all 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        /* Estilo para membrete nota de venta */
+        .invoice-membrete {
+            background: linear-gradient(135deg, #1e3c2c 0%, #2a4a35 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 12px 12px 0 0;
+        }
+        .watermark {
             position: relative;
             overflow: hidden;
         }
-        .watermark-bg::after {
+        .watermark::after {
             content: "NOTA DE VENTA";
             position: absolute;
-            bottom: 20%;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 3rem;
+            bottom: 10%;
+            right: 5%;
+            font-size: 4rem;
             font-weight: bold;
-            color: rgba(0,0,0,0.05);
+            color: rgba(0,0,0,0.08);
             pointer-events: none;
-            transform: rotate(-25deg);
+            transform: rotate(-15deg);
             white-space: nowrap;
-            z-index: 0;
         }
-        .recibo-card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-        }
-        /* Alerta stock bajo */
-        .stock-alert { background-color: #fee2e2; color: #b91c1c; font-weight: bold; border-left: 4px solid #ef4444; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans antialiased">
 
-    <div class="max-w-[1600px] mx-auto p-3">
-        <!-- HEADER: nombre empresa + botones principales -->
-        <div class="flex flex-wrap justify-between items-center bg-white shadow-md rounded-2xl p-4 mb-4">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-store text-3xl text-blue-700"></i>
-                <h1 class="text-2xl font-extrabold tracking-tight text-gray-800">Escamilla B. Wilson M.</h1>
-                <div class="hidden md:block text-xs text-gray-500 ml-2">📍 Valencia, Edo Carabobo | 📞 0414-4372956 / 0412-4749513</div>
+    <!-- Encabezado fijo con nombre empresa + botones de navegación -->
+    <div class="bg-white shadow-lg sticky top-0 z-30">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-store text-green-700 text-2xl"></i>
+                <span class="font-bold text-xl text-gray-800">Escamilla B. Wilson M.</span>
+                <span class="text-xs text-gray-500 hidden sm:inline">Valencia, Edo Carabobo</span>
             </div>
-            <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
-                <button data-tab="ventas" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-50 transition"><i class="fas fa-cash-register"></i> Ventas</button>
-                <button data-tab="almacen" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-boxes"></i> Almacén</button>
-                <button data-tab="fiados" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-hand-holding-usd"></i> Fiados</button>
-                <button data-tab="reportes" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-chart-line"></i> Cierre / Reportes</button>
-                <button data-tab="clientes" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-users"></i> Clientes</button>
-                <button data-tab="proveedores" class="tab-btn px-4 py-2 rounded-xl flex items-center gap-2"><i class="fas fa-truck"></i> Proveedores</button>
+            <div class="flex flex-wrap gap-1 sm:gap-2">
+                <button data-tab="ventas" class="tab-btn px-3 py-1.5 rounded-full bg-green-600 text-white shadow"><i class="fas fa-cart-shopping mr-1"></i> Ventas</button>
+                <button data-tab="almacen" class="tab-btn px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300"><i class="fas fa-boxes mr-1"></i> Almacén</button>
+                <button data-tab="fiados" class="tab-btn px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300"><i class="fas fa-hand-holding-usd mr-1"></i> Fiados</button>
+                <button data-tab="reportes" class="tab-btn px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300"><i class="fas fa-chart-line mr-1"></i> Cierre/Reportes</button>
+                <button data-tab="clientes" class="tab-btn px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300"><i class="fas fa-users mr-1"></i> Clientes</button>
+                <button data-tab="proveedores" class="tab-btn px-3 py-1.5 rounded-full bg-gray-200 hover:bg-gray-300"><i class="fas fa-truck mr-1"></i> Proveedores</button>
             </div>
-        </div>
-
-        <!-- CONTENIDO DINÁMICO (TABS) -->
-        <div id="contenidoPrincipal"></div>
-
-        <!-- Modal Historial Producto (oculto) -->
-        <div id="modalHistorial" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 p-4">
-            <div class="bg-white rounded-2xl max-w-3xl w-full p-5 max-h-[80vh] overflow-auto">
-                <div class="flex justify-between items-center border-b pb-2 mb-3"><h2 class="text-xl font-bold"><i class="fas fa-history"></i> Historial de Ventas - <span id="historialProductoNombre"></span></h2><button onclick="cerrarModalHistorial()" class="text-red-500 text-2xl">&times;</button></div>
-                <div id="listaHistorialProducto" class="space-y-2"></div>
-            </div>
-        </div>
-
-        <!-- Modal Editar / Pagar Fiado -->
-        <div id="modalPagoFiado" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50 p-4">
-            <div class="bg-white rounded-2xl max-w-md w-full p-5"><h3 class="font-bold text-lg">Registrar pago fiado</h3><input type="number" id="montoPagoFiado" placeholder="Monto en USD" class="border p-2 w-full my-2 rounded"><button id="confirmarPagoFiadoBtn" class="bg-green-600 text-white px-4 py-2 rounded w-full">Pagar</button><button onclick="cerrarModalFiado()" class="mt-2 w-full bg-gray-300 py-2 rounded">Cancelar</button></div>
         </div>
     </div>
 
-    <footer class="text-center text-gray-500 text-sm py-4 border-t mt-8">✨ Desarrollado con tecnología avanzada | Agradecimientos a Nexus Marketing 📱 0424-4525765 ✨</footer>
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <!-- ========================= VENTAS SECTION ========================= -->
+        <div id="ventas" class="tab-content active">
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Columna productos + buscador -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow p-4">
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="searchProducto" placeholder="Buscar producto (nombre/código)" class="border rounded-full px-4 py-2 w-full">
+                        <i class="fas fa-search text-gray-400 self-center text-xl"></i>
+                    </div>
+                    <div id="productosGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto p-1"></div>
+                </div>
+                <!-- Carrito / Nota de venta -->
+                <div class="bg-white rounded-2xl shadow p-4 flex flex-col">
+                    <h3 class="font-bold text-xl border-b pb-2 flex justify-between"><span><i class="fas fa-receipt"></i> Nota de Venta</span> <span id="invoiceNumDisplay" class="text-sm bg-gray-100 px-2 rounded">Factura: <span id="invoiceNumberPreview">AUTO-001</span></span></h3>
+                    <div class="mt-2 space-y-2 overflow-y-auto max-h-[40vh]" id="cartItemsList"></div>
+                    <div class="border-t pt-2 mt-2">
+                        <p class="font-bold">Total USD: $<span id="cartTotal">0.00</span></p>
+                        <div class="grid grid-cols-2 gap-2 text-sm mt-2">
+                            <input type="text" id="clienteNombre" placeholder="Cliente" class="border rounded px-2 py-1">
+                            <input type="text" id="clienteTelefono" placeholder="WhatsApp +58..." class="border rounded px-2 py-1">
+                            <select id="direccionZona" class="border rounded px-2 py-1 col-span-2"></select>
+                            <div class="col-span-2 flex gap-1"><input type="text" id="nuevaZona" placeholder="Nueva zona/dirección" class="border rounded px-2 py-1 flex-1"><button id="agregarZonaBtn" class="bg-gray-200 px-2 rounded"><i class="fas fa-plus"></i></button></div>
+                            <input type="text" id="vendedorNombre" placeholder="Vendedor" class="border rounded px-2 py-1">
+                            <select id="metodoPago" class="border rounded px-2 py-1">
+                                <option>Efectivo</option><option>Pago Móvil</option><option>Divisas</option><option>Biopago</option><option>Transferencia</option><option>Fiado Credito</option><option>Binance</option>
+                            </select>
+                            <input type="text" id="facturaManual" placeholder="N° Factura (auto)" class="border rounded px-2 py-1 text-xs">
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <button id="editarPreciosBtn" class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm"><i class="fas fa-pen"></i> Editar precios</button>
+                            <button id="anularVentaBtn" class="bg-red-600 text-white px-3 py-1 rounded-full text-sm"><i class="fas fa-trash-alt"></i> Anular venta</button>
+                            <button id="concretarVentaBtn" class="bg-green-700 text-white px-4 py-1 rounded-full shadow"><i class="fab fa-whatsapp"></i> Cobrar & Enviar Nota</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal historial producto -->
+            <div id="historialModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                <div class="bg-white rounded-xl w-11/12 max-w-2xl p-5 max-h-[80vh] overflow-auto"><h3 class="font-bold text-lg">Historial de Salidas</h3><div id="historialContenido"></div><button class="mt-3 bg-gray-500 text-white px-4 py-1 rounded" onclick="closeHistorial()">Cerrar</button></div>
+            </div>
+        </div>
+
+        <!-- ========================= ALMACEN SECTION ========================= -->
+        <div id="almacen" class="tab-content">
+            <div class="bg-white rounded-2xl shadow p-5">
+                <div class="flex flex-wrap gap-2 mb-4 justify-between"><h2 class="font-bold text-xl"><i class="fas fa-warehouse"></i> Gestión Inventario</h2><button id="descargarInventarioExcelBtn" class="bg-green-600 text-white px-3 py-1 rounded"><i class="fas fa-file-excel"></i> Excel inventario</button></div>
+                <div class="flex gap-2 mb-3"><input id="filtroCategoriaInv" placeholder="Filtrar por categoría" class="border rounded px-3 py-1 w-full"><button id="btnFiltrarCategoria" class="bg-blue-500 text-white px-3 rounded">Filtrar</button></div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div><h3 class="font-semibold">Agregar / Editar Producto</h3><form id="productoForm"><input type="hidden" id="editProductId"><input type="text" id="prodNombre" placeholder="Nombre producto" class="border w-full p-1 my-1 rounded"><select id="prodCategoria" class="border w-full p-1 my-1 rounded"></select><input type="number" id="prodStock" placeholder="Stock" class="border w-full p-1 my-1 rounded"><input type="number" id="prodPrecio" placeholder="Precio USD" step="0.01" class="border w-full p-1 my-1 rounded"><input type="file" id="prodFoto" accept="image/*" class="my-1"><div class="flex gap-2"><button type="button" id="guardarProductoBtn" class="bg-blue-600 text-white px-3 py-1 rounded">Guardar</button><button type="button" id="retirarStockBtn" class="bg-orange-500 text-white px-3 py-1 rounded">Retirar stock</button></div></form></div>
+                    <div><h3 class="font-semibold">Lista de productos</h3><div id="inventarioLista" class="max-h-[400px] overflow-y-auto"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================= FIADOS ========================= -->
+        <div id="fiados" class="tab-content"><div class="bg-white rounded-2xl shadow p-5"><div class="flex justify-between"><h2 class="font-bold text-xl"><i class="fas fa-file-invoice-dollar"></i> Deudas por Cliente</h2><button id="descargarExcelFiadosBtn" class="bg-green-600 text-white px-3 py-1 rounded"><i class="fas fa-download"></i> Excel Fiados</button></div><div id="fiadosLista" class="mt-4 space-y-3"></div></div></div>
+
+        <!-- ========================= CIERRE / REPORTES ========================= -->
+        <div id="reportes" class="tab-content"><div class="bg-white rounded-2xl shadow p-5"><h2 class="font-bold text-xl">Reportes de Ventas</h2><div class="flex gap-2 my-3"><input type="date" id="filtroFechaReporte" class="border p-1 rounded"><button id="btnFiltrarVentas" class="bg-indigo-600 text-white px-3 rounded">Filtrar</button><button id="btnReporteExcelVentas" class="bg-green-700 text-white px-3 rounded"><i class="fas fa-file-excel"></i> Descargar Excel Ventas</button><button id="btnReporteInventarioHoy" class="bg-blue-600 text-white px-3 rounded">Inventario Hoy</button></div><canvas id="ventasChart" width="400" height="200" class="max-h-64 w-full"></canvas><div id="tablaVentasReporte" class="overflow-x-auto mt-4"></div></div></div>
+
+        <!-- ========================= CLIENTES ========================= -->
+        <div id="clientes" class="tab-content"><div class="bg-white rounded-2xl shadow p-5"><h2 class="font-bold text-xl">Base de datos Clientes</h2><input type="text" id="filtroClienteNombre" placeholder="Buscar por nombre" class="border rounded w-full p-2 my-2"><div id="clientesListaContainer" class="grid md:grid-cols-2 gap-3"></div></div></div>
+
+        <!-- ========================= PROVEEDORES ========================= -->
+        <div id="proveedores" class="tab-content"><div class="bg-white rounded-2xl shadow p-5"><h2 class="font-bold text-xl">Gestión Proveedores</h2><form id="proveedorForm" class="flex flex-wrap gap-2 my-2"><input type="text" id="provNombre" placeholder="Proveedor" class="border p-1 rounded"><input type="text" id="provProducto" placeholder="Producto comprado"><input type="number" id="provDeuda" placeholder="Deuda USD" step="0.01"><button type="submit" class="bg-blue-600 text-white px-3 rounded">Registrar compra</button></form><div id="proveedoresLista" class="mt-3 space-y-2"></div></div></div>
+
+        <footer class="text-center text-gray-500 text-sm mt-8 border-t pt-4">Desarrollado con tecnología avanzada | Agradecimientos a Nexus Marketing 04244525765</footer>
+    </div>
 
     <script>
-        // ====================== INICIALIZACIÓN LOCALSTORAGE (datos desde 0) ======================
+        // ====================== DATA & GLOBAL STATE ======================
         let db = {
-            products: [], sales: [], customers: [], suppliers: [], categories: [], zones: [], debts: [], settings: { lastInvoice: 0, dollarRate: 1 }
+            products: JSON.parse(localStorage.getItem('pos_products')) || [],
+            sales: JSON.parse(localStorage.getItem('pos_sales')) || [],
+            customers: JSON.parse(localStorage.getItem('pos_customers')) || [],
+            clientDebts: JSON.parse(localStorage.getItem('pos_clientDebts')) || [], // {clientId, totalDebt, clientName, phone}
+            suppliers: JSON.parse(localStorage.getItem('pos_suppliers')) || [],
+            zones: JSON.parse(localStorage.getItem('pos_zones')) || ["Centro", "La Granja", "San José"],
+            nextInvoice: parseInt(localStorage.getItem('pos_nextInvoice')) || 1
         };
-        function loadData() {
-            db.products = JSON.parse(localStorage.getItem('pos_products') || '[]');
-            db.sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
-            db.customers = JSON.parse(localStorage.getItem('pos_customers') || '[]');
-            db.suppliers = JSON.parse(localStorage.getItem('pos_suppliers') || '[]');
-            db.categories = JSON.parse(localStorage.getItem('pos_categories') || '["Accesorios","Juguetes","Juguetes Avengers","Lonchera y Cartucheras","Morrales","Peluches","Peluches personajes","Utiles escolares"]');
-            db.zones = JSON.parse(localStorage.getItem('pos_zones') || '["Centro","Norte","Sur","Este","Oeste","La Viña","Prebo"]');
-            db.debts = JSON.parse(localStorage.getItem('pos_debts') || '[]');
-            let settings = JSON.parse(localStorage.getItem('pos_settings') || '{"lastInvoice":0,"dollarRate":1}');
-            db.settings = settings;
-            if(db.products.length === 0) localStorage.setItem('pos_products', JSON.stringify([]));
-            if(db.sales.length === 0) localStorage.setItem('pos_sales', JSON.stringify([]));
-            if(db.customers.length === 0) localStorage.setItem('pos_customers', JSON.stringify([]));
-            if(db.suppliers.length === 0) localStorage.setItem('pos_suppliers', JSON.stringify([]));
-            if(!localStorage.getItem('pos_categories')) localStorage.setItem('pos_categories', JSON.stringify(db.categories));
-            if(!localStorage.getItem('pos_zones')) localStorage.setItem('pos_zones', JSON.stringify(db.zones));
-            if(!localStorage.getItem('pos_debts')) localStorage.setItem('pos_debts', JSON.stringify([]));
-            if(!localStorage.getItem('pos_settings')) localStorage.setItem('pos_settings', JSON.stringify({lastInvoice:0, dollarRate:55.5}));
-            syncFromStorage();
-            actualizarTasaDolar(); // Obtener tasa real
-        }
-        function syncFromStorage() {
-            db.products = JSON.parse(localStorage.getItem('pos_products') || '[]');
-            db.sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
-            db.customers = JSON.parse(localStorage.getItem('pos_customers') || '[]');
-            db.suppliers = JSON.parse(localStorage.getItem('pos_suppliers') || '[]');
-            db.categories = JSON.parse(localStorage.getItem('pos_categories') || '[]');
-            db.zones = JSON.parse(localStorage.getItem('pos_zones') || '[]');
-            db.debts = JSON.parse(localStorage.getItem('pos_debts') || '[]');
-            db.settings = JSON.parse(localStorage.getItem('pos_settings') || '{"lastInvoice":0,"dollarRate":1}');
-        }
+        let currentCart = []; // { productId, name, price, quantity, customPrice }
+        let activeProductHistoryId = null;
+        let chartInstance = null;
+
         function saveAll() {
             localStorage.setItem('pos_products', JSON.stringify(db.products));
             localStorage.setItem('pos_sales', JSON.stringify(db.sales));
             localStorage.setItem('pos_customers', JSON.stringify(db.customers));
+            localStorage.setItem('pos_clientDebts', JSON.stringify(db.clientDebts));
             localStorage.setItem('pos_suppliers', JSON.stringify(db.suppliers));
-            localStorage.setItem('pos_categories', JSON.stringify(db.categories));
             localStorage.setItem('pos_zones', JSON.stringify(db.zones));
-            localStorage.setItem('pos_debts', JSON.stringify(db.debts));
-            localStorage.setItem('pos_settings', JSON.stringify(db.settings));
-        }
-        // Estado del carrito de compra actual
-        let carrito = []; // { productId, code, name, quantity, unitPrice, total }
-        let currentSale = { customerName: '', customerPhone: '', customerAddress: '', seller: '', paymentMethod: 'efectivo', invoiceNumber: 1, zone: '' };
-        
-        // Helper: obtener próximo número factura sugerido
-        function getNextInvoiceNumber() {
-            let max = 0;
-            db.sales.forEach(s => { if(s.invoiceNumber > max) max = s.invoiceNumber; });
-            return max+1;
-        }
-        // Actualizar tasa dolar desde API
-        async function actualizarTasaDolar() {
-            try {
-                const res = await fetch('https://pydolarve.org/api/v1/dollar?mon=usd');
-                const data = await res.json();
-                if(data && data.price) db.settings.dollarRate = parseFloat(data.price);
-                else db.settings.dollarRate = 55.0;
-            } catch(e) { db.settings.dollarRate = 55.0; }
-            localStorage.setItem('pos_settings', JSON.stringify(db.settings));
+            localStorage.setItem('pos_nextInvoice', db.nextInvoice);
         }
 
-        // ====================== RENDER PRINCIPAL (TABS) ======================
-        let activeTab = 'ventas';
-        function render() {
-            if(activeTab === 'ventas') renderVentas();
-            if(activeTab === 'almacen') renderAlmacen();
-            if(activeTab === 'fiados') renderFiados();
-            if(activeTab === 'reportes') renderReportes();
-            if(activeTab === 'clientes') renderClientes();
-            if(activeTab === 'proveedores') renderProveedores();
-            highlightTab();
-        }
-        function highlightTab() { document.querySelectorAll('.tab-btn').forEach(btn => { btn.classList.remove('active-tab','bg-blue-50'); if(btn.dataset.tab === activeTab) btn.classList.add('active-tab','bg-blue-50'); }); }
+        function generateProductCode() { return "PROD-" + Date.now().toString(36).toUpperCase(); }
 
-        // ---------- VENTAS (productos, carrito, nota) ----------
-        function renderVentas() {
-            let html = `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow p-4">
-                    <div class="flex gap-2 mb-4"><i class="fas fa-search mt-2"></i><input type="text" id="searchProducto" placeholder="Buscar producto..." class="border rounded-xl p-2 w-full"></div>
-                    <div id="productosGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 scroll-products max-h-[55vh] overflow-auto"></div>
-                </div>
-                <div class="bg-white rounded-2xl shadow p-4">
-                    <h3 class="font-bold text-xl border-b pb-2"><i class="fas fa-shopping-cart"></i> NOTA DE VENTA</h3>
-                    <div id="carritoItems" class="max-h-64 overflow-auto text-sm my-2"></div>
-                    <div class="border-t pt-2 font-bold">Total USD: $<span id="totalCarrito">0.00</span></div>
-                    <div class="grid grid-cols-2 gap-2 mt-2"><input type="text" id="clienteNombre" placeholder="Nombre Cliente" class="border p-1 rounded text-sm"><input type="text" id="clienteTelefono" placeholder="WhatsApp +58" class="border p-1 rounded text-sm"></div>
-                    <div class="flex gap-2 mt-1"><select id="clienteZona" class="border p-1 rounded text-sm w-full"></select><button onclick="agregarNuevaZona()" class="bg-gray-200 px-2 rounded text-xs"><i class="fas fa-plus"></i></button></div>
-                    <input type="text" id="direccionCliente" placeholder="Dirección detallada" class="border p-1 rounded text-sm w-full mt-1">
-                    <div class="flex gap-2 mt-1"><input type="text" id="vendedorNombre" placeholder="Vendedor" class="border p-1 rounded text-sm w-1/2"><input type="number" id="facturaNumero" placeholder="N° Factura" class="border p-1 rounded text-sm w-1/2"></div>
-                    <select id="metodoPago" class="border p-1 rounded text-sm w-full mt-1"><option value="efectivo">Efectivo</option><option value="pago movil">Pago Móvil</option><option value="divisas">Divisas</option><option value="biopago">Biopago</option><option value="transferencia">Transferencia</option><option value="fiado credito">Fiado Crédito</option><option value="binance">Binance</option></select>
-                    <div class="flex flex-wrap gap-2 mt-3"><button onclick="anularVenta()" class="bg-red-600 text-white px-3 py-1 rounded-lg text-sm"><i class="fas fa-trash"></i> Anular Venta</button><button onclick="concretarVentaConWhatsApp()" class="bg-green-700 text-white px-3 py-1 rounded-lg text-sm"><i class="fab fa-whatsapp"></i> Concretar & Enviar Nota</button></div>
-                </div>
-            </div>`;
-            document.getElementById('contenidoPrincipal').innerHTML = html;
-            llenarZonasSelect();
-            document.getElementById('facturaNumero').value = getNextInvoiceNumber();
-            renderProductosGrid('');
-            renderCarrito();
-            document.getElementById('searchProducto').addEventListener('input', (e) => renderProductosGrid(e.target.value));
+        function updateInvoiceNumberPreview() { let invManual = document.getElementById('facturaManual').value; let finalNum = invManual.trim() || `AUTO-${db.nextInvoice}`; document.getElementById('invoiceNumberPreview').innerText = finalNum; }
+
+        function refreshZonesSelect() { let select = document.getElementById('direccionZona'); select.innerHTML = db.zones.map(z => `<option>${z}</option>`).join(''); }
+
+        // helpers de stock alert, render productos en ventas
+        function renderProductosVentas(searchTerm = "") {
+            let container = document.getElementById('productosGrid');
+            let filtered = db.products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.code.toLowerCase().includes(searchTerm.toLowerCase()));
+            container.innerHTML = filtered.map(p => `<div class="border rounded-xl p-3 ${p.stock <= 6 ? 'stock-alert' : ''} card-hover cursor-pointer" data-id="${p.id}">
+                <div class="flex justify-between"><span class="font-bold">${p.name}</span><span class="text-sm bg-gray-200 px-2 rounded">${p.code}</span></div>
+                <div class="text-sm">Stock: ${p.stock} | $${p.price}</div>
+                <div class="flex gap-1 mt-2"><input type="number" id="qty-${p.id}" placeholder="Cant" class="border rounded w-20 text-center" value="1" min="1" max="${p.stock}"><button class="bg-green-500 text-white px-2 py-1 rounded text-sm agregar-carrito" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}"><i class="fas fa-cart-plus"></i> Agregar</button></div>
+                <button class="text-xs text-blue-600 mt-1 ver-historial" data-id="${p.id}"><i class="fas fa-history"></i> Historial</button>
+            </div>`).join('');
+            document.querySelectorAll('.agregar-carrito').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); let id = btn.dataset.id, qtyInput = document.getElementById(`qty-${id}`); let qty = parseInt(qtyInput.value) || 1; addToCart(id, qty, parseFloat(btn.dataset.price)); }));
+            document.querySelectorAll('.ver-historial').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); showProductHistory(btn.dataset.id); }));
         }
-        function llenarZonasSelect() { let select = document.getElementById('clienteZona'); if(select){ select.innerHTML = db.zones.map(z=>`<option value="${z}">${z}</option>`).join(''); } }
-        function agregarNuevaZona() { let nueva = prompt("Nueva zona/dirección:"); if(nueva && !db.zones.includes(nueva)){ db.zones.push(nueva); localStorage.setItem('pos_zones', JSON.stringify(db.zones)); llenarZonasSelect(); Swal.fire("Éxito","Zona agregada","success"); } }
-        function renderProductosGrid(filtro) {
-            let productos = db.products.filter(p => p.name.toLowerCase().includes(filtro.toLowerCase()) || p.code.includes(filtro));
-            let grid = document.getElementById('productosGrid');
-            if(!grid) return;
-            grid.innerHTML = productos.map(p => `<div class="border rounded-xl p-3 product-card ${p.stock <=6 ? 'stock-alert' : ''}"><div class="font-bold">${p.name}</div><div class="text-xs text-gray-500">Cód: ${p.code} | Stock: ${p.stock} | $${p.price_usd}</div><div class="flex gap-2 mt-2"><input type="number" id="cant-${p.id}" value="1" min="1" max="${p.stock}" class="border rounded w-16 text-center"><button onclick="agregarAlCarrito(${p.id})" class="bg-blue-600 text-white px-3 py-1 rounded text-sm"><i class="fas fa-cart-plus"></i> Agregar</button><button onclick="verHistorialProducto(${p.id})" class="bg-gray-200 text-xs px-2 py-1 rounded"><i class="fas fa-chart-line"></i></button></div></div>`).join('');
-        }
-        window.agregarAlCarrito = (productId) => {
-            let prod = db.products.find(p=>p.id===productId);
-            if(!prod) return;
-            let cantidad = parseInt(document.getElementById(`cant-${productId}`)?.value || 1);
-            if(cantidad > prod.stock) { Swal.fire("Stock insuficiente",`Solo ${prod.stock} unidades`,"error"); return; }
-            let existing = carrito.find(i=>i.productId===productId);
-            if(existing) existing.quantity += cantidad;
-            else carrito.push({ productId:prod.id, code:prod.code, name:prod.name, quantity:cantidad, unitPrice:prod.price_usd, total:prod.price_usd*cantidad });
-            carrito = carrito.map(i=>{ i.total = i.quantity*i.unitPrice; return i; });
-            renderCarrito();
-        };
-        function renderCarrito() {
-            let container = document.getElementById('carritoItems');
-            if(!container) return;
-            if(carrito.length===0){ container.innerHTML='<div class="text-gray-400 text-center p-2">Carrito vacío</div>'; document.getElementById('totalCarrito').innerText='0.00'; return; }
-            let total=0;
-            container.innerHTML = carrito.map((item,idx)=>`<div class="flex justify-between items-center border-b py-1"><div><span class="font-semibold">${item.name}</span><br><span class="text-xs">Cant: <input type="number" min="1" value="${item.quantity}" onchange="editarCantidadCarrito(${idx}, this.value)" class="w-12 border rounded text-center"> | $${item.unitPrice}</span></div><div>$${(item.quantity*item.unitPrice).toFixed(2)} <button onclick="eliminarItemCarrito(${idx})" class="text-red-500 ml-2"><i class="fas fa-trash"></i></button><br><button onclick="editarPrecioUnitario(${idx})" class="text-xs text-blue-500">Editar precio</button></div></div>`).join('');
-            total = carrito.reduce((sum,i)=>sum+(i.quantity*i.unitPrice),0);
-            document.getElementById('totalCarrito').innerText=total.toFixed(2);
-        }
-        window.editarCantidadCarrito = (idx, newVal) => { let cant = parseInt(newVal); if(cant>0){ carrito[idx].quantity=cant; carrito[idx].total=carrito[idx].quantity*carrito[idx].unitPrice; renderCarrito(); } };
-        window.eliminarItemCarrito = (idx) => { carrito.splice(idx,1); renderCarrito(); };
-        window.editarPrecioUnitario = (idx) => { let nuevo = parseFloat(prompt("Nuevo precio USD:", carrito[idx].unitPrice)); if(!isNaN(nuevo) && nuevo>0){ carrito[idx].unitPrice=nuevo; carrito[idx].total=carrito[idx].quantity*nuevo; renderCarrito(); } };
-        window.anularVenta = () => { if(carrito.length && confirm("¿Anular venta actual? Se perderán datos")){ carrito=[]; renderCarrito(); Swal.fire("Venta anulada","Stock no afectado","info"); } };
-        
-        // Concretar venta + whatsapp + deducir stock + imagen
-        window.concretarVentaConWhatsApp = async () => {
-            if(carrito.length===0) return Swal.fire("Error","Agrega productos","error");
-            let invoiceNumber = parseInt(document.getElementById('facturaNumero').value);
-            if(isNaN(invoiceNumber) || invoiceNumber<=0) return Swal.fire("Factura inválida","Número requerido","error");
-            let existingSale = db.sales.find(s=>s.invoiceNumber === invoiceNumber);
-            if(existingSale) return Swal.fire("Error","N° factura repetido, edite el número","error");
-            let customerName = document.getElementById('clienteNombre').value.trim();
-            let customerPhone = document.getElementById('clienteTelefono').value.trim();
-            let customerZone = document.getElementById('clienteZona').value;
-            let customerAddress = document.getElementById('direccionCliente').value.trim() + ", " + customerZone;
-            let seller = document.getElementById('vendedorNombre').value.trim() || "Vendedor";
-            let paymentMethod = document.getElementById('metodoPago').value;
-            if(!customerName) return Swal.fire("Cliente requerido","Ingrese nombre","warning");
-            // Verificar stock nuevamente antes de vender
-            for(let item of carrito){
-                let prod = db.products.find(p=>p.id===item.productId);
-                if(!prod || prod.stock < item.quantity) return Swal.fire("Stock insuficiente",`${item.name} solo ${prod?.stock||0} disponibles`,"error");
-            }
-            // Deducir stock
-            for(let item of carrito){
-                let prod = db.products.find(p=>p.id===item.productId);
-                prod.stock -= item.quantity;
-            }
-            let totalUSD = carrito.reduce((s,i)=>s+(i.quantity*i.unitPrice),0);
-            let newSale = {
-                id: Date.now(), invoiceNumber, date: new Date().toISOString(), customerName, customerPhone, customerAddress, seller, paymentMethod, totalUSD,
-                items: carrito.map(i=>({ productId:i.productId, code:i.code, name:i.name, quantity:i.quantity, unitPriceUSD:i.unitPrice, total:i.quantity*i.unitPrice }))
-            };
-            db.sales.push(newSale);
-            // Actualizar cliente en base de datos
-            let existingCustomer = db.customers.find(c=>c.phone === customerPhone || (c.name.toLowerCase()===customerName.toLowerCase()));
-            if(!existingCustomer) db.customers.push({ id:Date.now(), name:customerName, phone:customerPhone, address:customerAddress, zones:customerZone, totalPurchases:totalUSD, debts:0 });
-            else { existingCustomer.totalPurchases = (existingCustomer.totalPurchases||0)+totalUSD; }
-            // Si es fiado credito crear deuda
-            if(paymentMethod === 'fiado credito'){
-                let newDebt = { id:Date.now(), saleId:newSale.id, customerName, customerPhone, totalDebt:totalUSD, remainingDebt:totalUSD, status:'pendiente', date:new Date().toISOString(), products: carrito.map(i=>i.name).join(", ") };
-                db.debts.push(newDebt);
-                let cust = db.customers.find(c=>c.phone===customerPhone||c.name===customerName);
-                if(cust) cust.debts = (cust.debts||0)+totalUSD;
-            }
+
+        function addToCart(productId, quantity, basePrice) { let prod = db.products.find(p => p.id == productId); if (!prod || quantity <= 0 || quantity > prod.stock) { alert("Stock insuficiente"); return; } let existing = currentCart.find(i => i.productId == productId); if (existing) { existing.quantity += quantity; existing.customPrice = existing.customPrice || basePrice; } else { currentCart.push({ productId, name: prod.name, price: basePrice, quantity, customPrice: basePrice }); } renderCart(); }
+
+        function renderCart() { let cartDiv = document.getElementById('cartItemsList'); if (currentCart.length === 0) { cartDiv.innerHTML = '<p class="text-gray-400 text-center">Carrito vacío</p>'; document.getElementById('cartTotal').innerText = "0.00"; return; } let total = 0; cartDiv.innerHTML = currentCart.map((item, idx) => { let subtotal = (item.customPrice || item.price) * item.quantity; total += subtotal; return `<div class="flex justify-between text-sm border-b pb-1"><span>${item.name} x${item.quantity}</span><span>$${(item.customPrice || item.price).toFixed(2)} c/u</span><div><input type="number" step="0.01" class="w-16 border rounded edit-precio-unit" data-idx="${idx}" value="${(item.customPrice || item.price).toFixed(2)}"><button class="text-red-500 ml-1 eliminar-item" data-idx="${idx}"><i class="fas fa-trash"></i></button></div></div>`; }).join(''); document.getElementById('cartTotal').innerText = total.toFixed(2); document.querySelectorAll('.edit-precio-unit').forEach(inp => inp.addEventListener('change', (e) => { let idx = inp.dataset.idx; currentCart[idx].customPrice = parseFloat(inp.value); renderCart(); })); document.querySelectorAll('.eliminar-item').forEach(btn => btn.addEventListener('click', (e) => { let idx = btn.dataset.idx; currentCart.splice(idx,1); renderCart(); })); }
+
+        async function finalizarVenta() {
+            if (currentCart.length === 0) { alert("Agregue productos"); return; }
+            let clienteNom = document.getElementById('clienteNombre').value.trim(); let clienteTel = document.getElementById('clienteTelefono').value.trim(); let direccion = document.getElementById('direccionZona').value; let vendedor = document.getElementById('vendedorNombre').value.trim() || "Admin"; let metodo = document.getElementById('metodoPago').value; let facturaInput = document.getElementById('facturaManual').value.trim();
+            let invoiceNumber = facturaInput || `AUTO-${db.nextInvoice}`;
+            if (!facturaInput && db.sales.some(s => s.invoiceNumber === invoiceNumber)) { alert("Número de factura repetido automático. Edite manual."); return; }
+            if (facturaInput && db.sales.some(s => s.invoiceNumber === facturaInput)) { alert("Número ya existe, cámbielo."); return; }
+            if (!clienteNom) { alert("Nombre cliente obligatorio"); return; }
+            let totalVenta = currentCart.reduce((acc,i)=> acc + (i.customPrice||i.price)*i.quantity,0);
+            let itemsVendidos = currentCart.map(i => ({ productId: i.productId, productName: i.name, quantity: i.quantity, unitPrice: i.customPrice||i.price, subtotal: (i.customPrice||i.price)*i.quantity }));
+            let nuevaVenta = { id: Date.now(), invoiceNumber, date: new Date().toISOString(), customerName: clienteNom, customerPhone: clienteTel, address: direccion, seller: vendedor, paymentMethod: metodo, items: itemsVendidos, totalAmount: totalVenta };
+            // actualizar stock
+            for (let item of currentCart) { let prod = db.products.find(p=>p.id == item.productId); if(prod) prod.stock -= item.quantity; if(prod.stock<0) prod.stock=0; }
+            db.sales.push(nuevaVenta);
+            // actualizar o crear cliente
+            let existingCustomer = db.customers.find(c=>c.name.toLowerCase()===clienteNom.toLowerCase());
+            if(!existingCustomer) db.customers.push({ id: Date.now(), name: clienteNom, phone: clienteTel, address: direccion, debts: 0, purchaseHistory: [] });
+            else { existingCustomer.phone = clienteTel; existingCustomer.address = direccion; }
+            // gestión fiado
+            if (metodo === "Fiado Credito") { let debtClient = db.clientDebts.find(d=>d.clientName===clienteNom); if(debtClient) debtClient.totalDebt += totalVenta; else db.clientDebts.push({ clientId: existingCustomer?.id || Date.now(), clientName: clienteNom, phone: clienteTel, totalDebt: totalVenta, lastSale: nuevaVenta.date }); }
+            // correlativo
+            if (!facturaInput) db.nextInvoice++;
             saveAll();
-            // Generar imagen nota de venta y enviar whatsapp
-            await generarImagenNotaYEnviar(newSale, customerPhone);
-            // Limpiar carrito y resetear
-            carrito = [];
-            renderCarrito();
-            document.getElementById('clienteNombre').value = '';
-            document.getElementById('clienteTelefono').value = '';
-            document.getElementById('direccionCliente').value = '';
-            document.getElementById('facturaNumero').value = getNextInvoiceNumber();
-            renderProductosGrid('');
-            Swal.fire("Venta exitosa","Stock actualizado y nota generada","success");
-            if(activeTab==='ventas') renderVentas();
-        };
-        
-        async function generarImagenNotaYEnviar(sale, phoneNumber){
-            let tempDiv = document.createElement('div');
-            tempDiv.className = "recibo-card p-6 max-w-md mx-auto watermark-bg relative bg-white shadow-xl";
-            let itemsHtml = sale.items.map(it=>`<tr><td class="border p-1 text-xs">${it.code}</td><td class="border p-1">${it.name}</td><td class="border p-1 text-center">${it.quantity}</td><td class="border p-1 text-right">$${it.unitPriceUSD.toFixed(2)}</td><td class="border p-1 text-right">$${it.total.toFixed(2)}</td></tr>`).join('');
-            tempDiv.innerHTML = `<div class="text-center border-b pb-2"><h2 class="text-xl font-bold">Escamilla B. Wilson M.</h2><p class="text-xs">Valencia Edo Carabobo | Tel: 0414-4372956 / 0412-4749513</p><p class="text-xs">📍 ${sale.customerAddress}</p></div><div class="text-right text-xs">Factura N°: ${sale.invoiceNumber} | Fecha: ${new Date(sale.date).toLocaleString()}</div><div><p><strong>Cliente:</strong> ${sale.customerName} | Vendedor: ${sale.seller}</p></div><table class="w-full text-sm mt-2 border"><thead><tr><th>Código</th><th>Producto</th><th>Cant</th><th>Precio USD</th><th>Subtotal</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="text-right font-bold mt-2">TOTAL: $${sale.totalUSD.toFixed(2)}  |  Método: ${sale.paymentMethod}</div><div class="text-center text-xs mt-3">¡Gracias por su compra!  *Nota de venta*</div>`;
-            document.body.appendChild(tempDiv);
-            try{
-                let canvas = await html2canvas(tempDiv, {scale:2, backgroundColor:'#ffffff'});
-                let imgData = canvas.toDataURL('image/png');
-                let link = document.createElement('a');
-                link.download = `factura_${sale.invoiceNumber}.png`;
-                link.href = imgData;
-                link.click();
-                if(phoneNumber && phoneNumber.trim()){
-                    let whatsappMsg = `*Escamilla B. Wilson M.*%0A📄 Factura N°${sale.invoiceNumber}%0ACliente: ${sale.customerName}%0ATotal: $${sale.totalUSD.toFixed(2)}%0A¡Gracias por su compra! Adjunto imagen de su nota de venta.`;
-                    window.open(`https://wa.me/${phoneNumber.replace(/[^0-9]/g,'')}?text=${whatsappMsg}`, '_blank');
-                }
-            }catch(e){console.error(e);}
-            document.body.removeChild(tempDiv);
+            // generar imagen factura y enviar por whatsapp
+            await generarYEnviarWhatsapp(nuevaVenta, clienteTel);
+            // limpiar carrito
+            currentCart = [];
+            renderCart();
+            document.getElementById('clienteNombre').value = ""; document.getElementById('clienteTelefono').value = "";
+            renderProductosVentas(document.getElementById('searchProducto').value);
+            renderInventarioLista(); renderFiadosLista(); renderClientesLista(); renderProveedoresLista(); actualizarReportes();
+            alert(`Venta #${invoiceNumber} completada. Stock actualizado.`);
         }
-        
-        window.verHistorialProducto = (prodId) => {
-            let prod = db.products.find(p=>p.id===prodId);
-            if(!prod) return;
-            let ventasRel = db.sales.filter(s=> s.items.some(it=>it.productId===prodId));
-            document.getElementById('historialProductoNombre').innerText = prod.name;
-            let cont = document.getElementById('listaHistorialProducto');
-            cont.innerHTML = ventasRel.map(v=> `<div class="border p-2 rounded"><b>Fecha:</b> ${new Date(v.date).toLocaleString()} | <b>Cliente:</b> ${v.customerName} | <b>Monto USD:</b> $${v.totalUSD.toFixed(2)}<br><b>Cantidad vendida:</b> ${v.items.find(i=>i.productId===prodId)?.quantity || 0} unidades | <b>Método:</b> ${v.paymentMethod}</div>`).join('');
-            if(ventasRel.length===0) cont.innerHTML='<div class="text-gray-400">Sin historial de ventas</div>';
-            document.getElementById('modalHistorial').classList.remove('hidden'); document.getElementById('modalHistorial').classList.add('flex');
-        };
-        window.cerrarModalHistorial = () => { document.getElementById('modalHistorial').classList.add('hidden'); };
-        
-        // ---------- ALMACEN ----------
-        function renderAlmacen(){
-            let html = `<div class="bg-white p-4 rounded-2xl shadow"><div class="flex justify-between"><h2 class="text-xl font-bold"><i class="fas fa-warehouse"></i> Gestión de Inventario</h2><button onclick="mostrarModalProducto()" class="bg-blue-600 text-white px-3 py-1 rounded"><i class="fas fa-plus"></i> Nuevo Producto</button></div><div class="flex gap-2 my-3"><input type="text" id="filtroCategoriaAlm" placeholder="Filtrar por categoría" class="border p-1 rounded"><button onclick="filtrarAlmacen()" class="bg-gray-200 px-2 rounded">Filtrar</button><button onclick="exportarInventarioExcel()" class="bg-green-600 text-white px-2 rounded"><i class="fas fa-file-excel"></i> Excel Inventario</button></div><div id="listaProductosAlm" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[60vh] overflow-auto"></div></div>`;
-            document.getElementById('contenidoPrincipal').innerHTML = html;
-            renderListaProductosAlm('');
+
+        async function generarYEnviarWhatsapp(venta, telefonoCliente) {
+            let invoiceDiv = document.createElement('div'); invoiceDiv.className = "bg-white p-4 rounded-xl shadow-lg w-[350px] watermark relative"; invoiceDiv.style.fontFamily = "monospace";
+            invoiceDiv.innerHTML = `<div class="invoice-membrete text-center"><h2 class="font-bold">Escamilla B. Wilson M.</h2><p class="text-xs">Valencia - Edo Carabobo | Telf: 0414-4372956 / 0412-4749513</p></div>
+            <div class="p-2 text-sm"><p><strong>Factura:</strong> ${venta.invoiceNumber}</p><p><strong>Cliente:</strong> ${venta.customerName}</p><p><strong>Fecha:</strong> ${new Date(venta.date).toLocaleString()}</p><p><strong>Vendedor:</strong> ${venta.seller}</p><hr/>
+            <ul>${venta.items.map(i=>`<li>${i.productName} x${i.quantity} @ $${i.unitPrice.toFixed(2)} = $${i.subtotal.toFixed(2)}</li>`).join('')}</ul><hr/>
+            <h3 class="font-bold">Total: $${venta.totalAmount.toFixed(2)}</h3><p class="text-xs text-center mt-2">Método pago: ${venta.paymentMethod}</p><p class="text-center text-[10px]">¡Gracias por su compra!</p></div>`;
+            document.body.appendChild(invoiceDiv);
+            let canvas = await html2canvas(invoiceDiv, { scale: 2 });
+            let imgData = canvas.toDataURL('image/jpeg', 0.9);
+            invoiceDiv.remove();
+            let link = document.createElement('a'); link.download = `factura_${venta.invoiceNumber}.jpg`; link.href = imgData; link.click();
+            if (telefonoCliente && telefonoCliente.trim()) { let phoneClean = telefonoCliente.replace(/\D/g, ''); if(phoneClean.startsWith('58')) phoneClean = phoneClean; else if(phoneClean.length===11) phoneClean = '58'+phoneClean; window.open(`https://wa.me/${phoneClean}?text=*Escamilla B. Wilson M.*%20Factura%20${venta.invoiceNumber}%20Total%3A%20%24${venta.totalAmount.toFixed(2)}%20Adjunto%20imagen%20de%20la%20nota%20de%20venta.%20Gracias!`,'_blank'); }
+            else alert("Imagen descargada. No se envió WhatsApp porque falta número.");
         }
-        function renderListaProductosAlm(categoriaFiltro){
-            let prods = categoriaFiltro ? db.products.filter(p=>p.category===categoriaFiltro) : db.products;
-            let div = document.getElementById('listaProductosAlm');
-            div.innerHTML = prods.map(p=>`<div class="border rounded-xl p-3 flex justify-between items-center"><div><div class="font-bold">${p.name}</div><div class="text-xs">Código: ${p.code} | Stock: ${p.stock} | $${p.price_usd} | Cat: ${p.category}</div>${p.image ? `<img src="${p.image}" class="w-12 h-12 object-cover mt-1">` : ''}</div><div><button onclick="editarStockProducto(${p.id})" class="bg-yellow-500 text-white px-2 py-1 rounded text-sm"><i class="fas fa-edit"></i> Stock</button><button onclick="eliminarProducto(${p.id})" class="bg-red-500 text-white px-2 py-1 rounded text-sm ml-1"><i class="fas fa-trash"></i></button></div></div>`).join('');
+
+        function showProductHistory(productId) { let salesWithProd = db.sales.filter(s => s.items.some(it => it.productId == productId)); let html = salesWithProd.map(s => `<div class="border p-2 mb-2 rounded"><b>Fecha:</b> ${new Date(s.date).toLocaleString()} <b>Cliente:</b> ${s.customerName}<br><b>Monto total venta:</b> $${s.totalAmount.toFixed(2)} <br><b>Detalle producto:</b> ${s.items.filter(i=>i.productId==productId).map(i=>`Cantidad: ${i.quantity} | Precio u: $${i.unitPrice} | Subtotal: $${i.subtotal}`).join(', ')}</div>`).join('') || "Sin historial";
+            document.getElementById('historialContenido').innerHTML = html; document.getElementById('historialModal').classList.remove('hidden'); }
+        window.closeHistorial = ()=>document.getElementById('historialModal').classList.add('hidden');
+
+        // Almacén
+        function renderInventarioLista(categoriaFilter="") { let container = document.getElementById('inventarioLista'); let filtered = categoriaFilter ? db.products.filter(p=>p.categoria===categoriaFilter) : db.products; container.innerHTML = filtered.map(p=>`<div class="border rounded p-2 mb-2 flex justify-between items-center"><div><img src="${p.foto || 'https://via.placeholder.com/40'}" class="w-10 h-10 inline mr-2 object-cover rounded"><b>${p.name}</b> (${p.code}) Stock:${p.stock} $${p.price}<br><span class="text-xs">Cat: ${p.categoria}</span></div><button class="bg-red-500 text-white px-2 rounded retirarBtn" data-id="${p.id}"><i class="fas fa-minus-circle"></i> Retirar</button><button class="bg-blue-500 text-white px-2 rounded agregarStockBtn" data-id="${p.id}"><i class="fas fa-plus-circle"></i> +Stock</button></div>`).join('');
+            document.querySelectorAll('.retirarBtn').forEach(btn=>btn.addEventListener('click',()=>ajustarStock(btn.dataset.id, -1))); document.querySelectorAll('.agregarStockBtn').forEach(btn=>btn.addEventListener('click',()=>ajustarStock(btn.dataset.id, +1))); }
+        function ajustarStock(pid, delta) { let prod = db.products.find(p=>p.id==pid); if(prod) { let newStock = prod.stock + delta; if(newStock>=0) prod.stock = newStock; else alert("Stock no puede ser negativo"); saveAll(); renderInventarioLista(); renderProductosVentas(); } }
+        function guardarProducto() { let id = document.getElementById('editProductId').value; let name = document.getElementById('prodNombre').value; let categoria = document.getElementById('prodCategoria').value; let stock = parseInt(document.getElementById('prodStock').value); let price = parseFloat(document.getElementById('prodPrecio').value); let fotoFile = document.getElementById('prodFoto').files[0]; let fotoData = null; if(fotoFile){ let reader = new FileReader(); reader.onload = e=>{ fotoData = e.target.result; guardarFinal(id, name, categoria, stock, price, fotoData); }; reader.readAsDataURL(fotoFile); } else guardarFinal(id, name, categoria, stock, price, null); }
+        function guardarFinal(id, name, categoria, stock, price, fotoData) { if(id){ let p = db.products.find(p=>p.id==id); if(p){ p.name=name; p.categoria=categoria; p.stock=stock; p.price=price; if(fotoData) p.foto=fotoData; } } else { let newProd = { id: Date.now().toString(), code: generateProductCode(), name, categoria, stock, price, foto: fotoData || null, created: new Date().toISOString() }; db.products.push(newProd); } saveAll(); renderInventarioLista(); renderProductosVentas(); limpiarFormProducto(); }
+        function limpiarFormProducto() { document.getElementById('editProductId').value=""; document.getElementById('prodNombre').value=""; document.getElementById('prodStock').value=""; document.getElementById('prodPrecio').value=""; document.getElementById('prodFoto').value=""; }
+        function loadCategoriasSelect() { let select = document.getElementById('prodCategoria'); let cats = [...new Set(db.products.map(p=>p.categoria).filter(c=>c))]; cats.push("Accesorios","Juguetes","Juguetes Avenguer","Lonchera","Morrales","Peluches","Utiles"); select.innerHTML = `<option>Seleccionar</option>${[...new Set(cats)].map(c=>`<option>${c}</option>`).join('')}<option>+ Nueva</option>`; }
+
+        // Fiados
+        function renderFiadosLista() { let container = document.getElementById('fiadosLista'); let deudas = db.clientDebts.filter(d=>d.totalDebt>0); if(deudas.length===0) { container.innerHTML="<p>Sin deudas pendientes</p>"; return; } container.innerHTML = deudas.map(d=>`<div class="border p-3 rounded flex flex-wrap justify-between items-center bg-red-50"><div><b>${d.clientName}</b> | Tel: ${d.phone} | Deuda: $${d.totalDebt.toFixed(2)}</div><div><input id="pagoParcial-${d.clientId}" placeholder="Monto pago $" class="border w-24 text-sm"><button class="bg-green-600 text-white px-2 rounded pagarBtn" data-id="${d.clientId}" data-total="${d.totalDebt}">Pagar parcial</button><button class="bg-blue-600 text-white px-2 rounded pagarTotalBtn" data-id="${d.clientId}">Pagar todo</button></div></div>`).join('');
+            document.querySelectorAll('.pagarBtn').forEach(btn=>btn.addEventListener('click',()=>{let id=btn.dataset.id, monto=parseFloat(document.getElementById(`pagoParcial-${id}`).value); if(monto>0) pagarDeuda(id,monto,false);}));
+            document.querySelectorAll('.pagarTotalBtn').forEach(btn=>btn.addEventListener('click',()=>pagarDeuda(btn.dataset.id, null, true))); }
+        function pagarDeuda(clientId, monto, total) { let debt = db.clientDebts.find(d=>d.clientId==clientId); if(!debt) return; if(total) debt.totalDebt = 0; else { if(monto>debt.totalDebt) alert("Monto mayor a deuda"); else debt.totalDebt -= monto; } saveAll(); renderFiadosLista(); renderClientesLista(); }
+        
+        // Reportes
+        function actualizarReportes(fecha="") { let ventasFiltradas = fecha ? db.sales.filter(s=>s.date.split('T')[0]===fecha) : db.sales; let htmlTabla = `<table class="min-w-full border"><tr><th>Factura</th><th>Fecha</th><th>Cliente</th><th>Método</th><th>Vendedor</th><th>Total</th></tr>${ventasFiltradas.map(v=>`<tr><td>${v.invoiceNumber}</td><td>${new Date(v.date).toLocaleString()}</td><td>${v.customerName}</td><td>${v.paymentMethod}</td><td>${v.seller}</td><td>$${v.totalAmount.toFixed(2)}</td></tr>`).join('')}</table>`;
+            document.getElementById('tablaVentasReporte').innerHTML = htmlTabla;
+            if(chartInstance) chartInstance.destroy(); let ctx = document.getElementById('ventasChart').getContext('2d'); let agrupado = {}; ventasFiltradas.forEach(v=>{ let fechaCorta = v.date.split('T')[0]; agrupado[fechaCorta] = (agrupado[fechaCorta]||0)+v.totalAmount; }); chartInstance = new Chart(ctx, { type: 'line', data: { labels: Object.keys(agrupado), datasets: [{ label: 'Ventas USD', data: Object.values(agrupado), borderColor: 'green' }] } }); }
+        function exportarExcelVentas() { let ws = XLSX.utils.json_to_sheet(db.sales.map(s=>({Factura:s.invoiceNumber, Fecha:s.date, Cliente:s.customerName, Total:s.totalAmount, Metodo:s.paymentMethod, Vendedor:s.seller}))); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ventas"); XLSX.writeFile(wb, `reporte_ventas.xlsx`); }
+        function exportarInventarioExcel() { let ws = XLSX.utils.json_to_sheet(db.products.map(p=>({Codigo:p.code, Nombre:p.name, Categoria:p.categoria, Stock:p.stock, PrecioUSD:p.price}))); XLSX.writeFile(XLSX.utils.book_new(), ws, "inventario.xlsx"); }
+        function exportarFiadosExcel() { let ws = XLSX.utils.json_to_sheet(db.clientDebts.map(d=>({Cliente:d.clientName, Telefono:d.phone, Deuda:d.totalDebt}))); XLSX.writeFile(XLSX.utils.book_new(), ws, "deudas_pendientes.xlsx"); }
+
+        // Clientes con deuda alerta
+        function renderClientesLista() { let search = document.getElementById('filtroClienteNombre').value.toLowerCase(); let filtered = db.customers.filter(c=>c.name.toLowerCase().includes(search)); let debtMap = db.clientDebts.reduce((acc,d)=> (acc[d.clientName]=d.totalDebt, acc), {});
+            document.getElementById('clientesListaContainer').innerHTML = filtered.map(c=>`<div class="border rounded p-3 ${debtMap[c.name] > 0 ? 'bg-red-100 border-red-400' : ''}"><div class="font-bold">${c.name} <span class="text-sm">${c.phone}</span></div><div>Dirección: ${c.address}</div><div class="text-sm">Deuda: $${(debtMap[c.name]||0).toFixed(2)}</div><button class="text-blue-600 verComprasCliente" data-name="${c.name}">Ver historial compras</button></div>`).join('');
+            document.querySelectorAll('.verComprasCliente').forEach(btn=>btn.addEventListener('click',()=>{ let nombre=btn.dataset.name; let comprasCliente=db.sales.filter(s=>s.customerName===nombre); alert(comprasCliente.map(s=>`${s.invoiceNumber} $${s.totalAmount} ${new Date(s.date).toLocaleDateString()}`).join('\n')||"Sin compras");}));
         }
-        window.mostrarModalProducto = async () => {
-            let cats = db.categories.join(",");
-            let newCat = prompt("Categoría existente o nueva (separado por comas para nueva):\nActuales: "+cats, "");
-            if(!newCat) return;
-            let categoriaFinal = newCat;
-            if(!db.categories.includes(newCat)){ db.categories.push(newCat); localStorage.setItem('pos_categories',JSON.stringify(db.categories)); }
-            let name = prompt("Nombre producto");
-            let price = parseFloat(prompt("Precio USD"));
-            let stock = parseInt(prompt("Stock inicial"));
-            if(!name || isNaN(price) || isNaN(stock)) return;
-            let code = "PROD-" + String(db.products.length+101).padStart(4,'0');
-            let newProduct = { id: Date.now(), code, name, category:categoriaFinal, price_usd:price, stock, image:null, createdDate:new Date().toISOString() };
-            db.products.push(newProduct);
-            saveAll();
-            renderAlmacen();
-        };
-        window.editarStockProducto = (id) => { let prod=db.products.find(p=>p.id===id); let nuevoStock=parseInt(prompt("Nuevo stock:", prod.stock)); if(!isNaN(nuevoStock)){ prod.stock=nuevoStock; saveAll(); renderAlmacen(); if(activeTab==='ventas') renderVentas(); } };
-        window.eliminarProducto = (id) => { if(confirm("Eliminar producto?")){ db.products=db.products.filter(p=>p.id!==id); saveAll(); renderAlmacen(); if(activeTab==='ventas') renderVentas(); } };
-        function filtrarAlmacen(){ let filtro=document.getElementById('filtroCategoriaAlm').value; renderListaProductosAlm(filtro); }
-        function exportarInventarioExcel(){ let ws = XLSX.utils.json_to_sheet(db.products.map(p=>({Codigo:p.code, Producto:p.name, Categoria:p.category, Stock:p.stock, PrecioUSD:p.price_usd}))); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Inventario"); XLSX.writeFile(wb,"inventario_escamilla.xlsx");}
-        
-        // ---------- FIADOS ----------
-        function renderFiados(){ let deudasPorCliente={}; db.debts.forEach(d=>{ if(d.remainingDebt>0){ if(!deudasPorCliente[d.customerPhone]) deudasPorCliente[d.customerPhone]={nombre:d.customerName, telefono:d.customerPhone, deudaTotal:0, detalles:[]}; deudasPorCliente[d.customerPhone].deudaTotal+=d.remainingDebt; deudasPorCliente[d.customerPhone].detalles.push(d); } }); let html = `<div class="bg-white p-4 rounded-2xl shadow"><h2 class="font-bold text-xl">Cuentas por Cobrar (Fiados)</h2><button onclick="exportarFiadosExcel()" class="bg-green-600 text-white px-2 py-1 rounded my-2"><i class="fas fa-download"></i> Excel Fiados</button><div id="listaFiados" class="space-y-2"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=html; let cont=document.getElementById('listaFiados'); cont.innerHTML=Object.values(deudasPorCliente).map(c=>`<div class="border p-3 rounded flex justify-between"><div><b>${c.nombre}</b> | 📞 ${c.telefono} | Deuda: $${c.deudaTotal.toFixed(2)}</div><button onclick="pagarFiadoCliente('${c.telefono}')" class="bg-blue-600 text-white px-3 py-1 rounded">Pagar</button></div>`).join(''); }
-        window.pagarFiadoCliente = (telefono) => { let deudasCliente = db.debts.filter(d=>d.customerPhone===telefono && d.remainingDebt>0); let totalDeuda = deudasCliente.reduce((a,b)=>a+b.remainingDebt,0); Swal.fire({title:`Deuda total $${totalDeuda.toFixed(2)}`,input:'number',text:'Monto a pagar (USD)',showCancelButton:true}).then(res=>{ if(res.value){ let monto=parseFloat(res.value); if(monto>0){ let restante=monto; for(let deuda of deudasCliente){ if(restante<=0) break; if(deuda.remainingDebt>=restante){ deuda.remainingDebt-=restante; restante=0; }else{ restante-=deuda.remainingDebt; deuda.remainingDebt=0; } } saveAll(); renderFiados(); Swal.fire("Pago registrado","Deuda actualizada","success"); } } }); };
-        function exportarFiadosExcel(){ let data = db.debts.filter(d=>d.remainingDebt>0).map(d=>({Cliente:d.customerName,Telefono:d.customerPhone,DeudaUSD:d.remainingDebt,Productos:d.products,Fecha:d.date})); let ws=XLSX.utils.json_to_sheet(data); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Fiados"); XLSX.writeFile(wb,"reporte_fiados.xlsx");}
-        // ---------- REPORTES ----------
-        function renderReportes(){ let html=`<div class="bg-white p-4 rounded-2xl shadow"><h2 class="font-bold">Reportes de Ventas</h2><input type="date" id="fechaFiltro" class="border p-1 my-2"><button onclick="cargarReportePorFecha()" class="bg-blue-600 text-white px-2 py-1 rounded">Filtrar</button><button onclick="exportarReporteVentasExcel()" class="bg-green-600 text-white px-2 py-1 rounded ml-2"><i class="fas fa-download"></i> Excel Ventas</button><div id="tablaReportes" class="overflow-auto mt-3"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=html; cargarReportePorFecha(); }
-        function cargarReportePorFecha(){ let fecha=document.getElementById('fechaFiltro').value; let ventasFiltradas = fecha ? db.sales.filter(s=>s.date.startsWith(fecha)) : db.sales; let tabla=`<table class="w-full border text-sm"><thead><tr><th>Factura</th><th>Fecha/Hora</th><th>Cliente</th><th>Vendedor</th><th>Método</th><th>Total USD</th></tr></thead><tbody>${ventasFiltradas.map(v=>`<tr><td>${v.invoiceNumber}</td><td>${new Date(v.date).toLocaleString()}</td><td>${v.customerName}</td><td>${v.seller}</td><td>${v.paymentMethod}</td><td>$${v.totalUSD}</td></tr>`).join('')}</tbody></table>`; document.getElementById('tablaReportes').innerHTML=tabla; }
-        function exportarReporteVentasExcel(){ let ws=XLSX.utils.json_to_sheet(db.sales.map(s=>({Factura:s.invoiceNumber,Fecha:s.date,Cliente:s.customerName,Vendedor:s.seller,Metodo:s.paymentMethod,TotalUSD:s.totalUSD}))); let wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Ventas"); XLSX.writeFile(wb,"reporte_ventas.xlsx");}
-        // ---------- CLIENTES Y PROVEEDORES (simplificado)----------
-        function renderClientes(){ let clientesHtml = `<div class="bg-white p-4 rounded-2xl"><h2 class="font-bold">Base de Clientes</h2><input type="text" id="filtroCliente" placeholder="Buscar nombre" class="border p-1 w-full my-2"><div id="listaClientes"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=clientesHtml; filtrarClientes(); document.getElementById('filtroCliente').addEventListener('input',filtrarClientes); }
-        function filtrarClientes(){ let texto=document.getElementById('filtroCliente').value.toLowerCase(); let filtrados=db.customers.filter(c=>c.name.toLowerCase().includes(texto)); let div=document.getElementById('listaClientes'); div.innerHTML=filtrados.map(c=>`<div class="border p-2 rounded mb-2 ${(c.debts>0)?'bg-red-100':''}"><b>${c.name}</b> | 📞${c.phone} | Compras: $${c.totalPurchases||0} | Deuda: $${c.debts||0}<button onclick="verDetalleCliente('${c.phone}')" class="bg-gray-500 text-white px-2 py-0 rounded text-xs ml-2">Historial</button></div>`).join(''); }
-        window.verDetalleCliente = (phone)=>{ let compras=db.sales.filter(s=>s.customerPhone===phone); Swal.fire({title:"Historial Compras",html:compras.map(s=>`Factura ${s.invoiceNumber}: $${s.totalUSD} - ${new Date(s.date).toLocaleDateString()}`).join('<br>')||"Sin compras"}); };
-        function renderProveedores(){ let html=`<div class="bg-white p-4 rounded-2xl"><h2>Proveedores</h2><button onclick="agregarProveedor()" class="bg-blue-600 text-white px-3 py-1 rounded">+ Nuevo</button><div id="listaProv"></div></div>`; document.getElementById('contenidoPrincipal').innerHTML=html; renderListaProv(); }
-        function renderListaProv(){ let div=document.getElementById('listaProv'); div.innerHTML=db.suppliers.map(s=>`<div class="border p-2 my-1">${s.name} - ${s.phone} | Deuda: $${s.debt||0}</div>`).join(''); }
-        window.agregarProveedor=()=>{ let nom=prompt("Nombre proveedor"); let tel=prompt("Teléfono"); if(nom) { db.suppliers.push({id:Date.now(),name:nom,phone:tel,debt:0}); saveAll(); renderProveedores(); } };
-        
-        // Inicializar todo
-        loadData();
-        document.querySelector('.max-w-\\[1600px\\]').addEventListener('click', (e) => { if(e.target.classList.contains('tab-btn')){ activeTab = e.target.dataset.tab; render(); } });
-        render();
+        function renderProveedoresLista() { let container = document.getElementById('proveedoresLista'); container.innerHTML = db.suppliers.map((s,idx)=>`<div class="border p-2 flex justify-between"><span><b>${s.name}</b> - Producto: ${s.product} - Deuda: $${s.debt}</span><button class="bg-green-500 text-white px-2 pagarProv" data-idx="${idx}">Pagar deuda</button></div>`).join('');
+            document.querySelectorAll('.pagarProv').forEach(btn=>btn.addEventListener('click',()=>{ db.suppliers.splice(btn.dataset.idx,1); saveAll(); renderProveedoresLista(); })); }
+        document.getElementById('proveedorForm')?.addEventListener('submit',(e)=>{ e.preventDefault(); let name=document.getElementById('provNombre').value; let product=document.getElementById('provProducto').value; let debt=parseFloat(document.getElementById('provDeuda').value); if(name && debt>0) db.suppliers.push({name,product,debt}); saveAll(); renderProveedoresLista(); });
+
+        // Eventos UI
+        document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById(btn.dataset.tab).classList.add('active'); if(btn.dataset.tab==='almacen'){ loadCategoriasSelect(); renderInventarioLista();} if(btn.dataset.tab==='fiados') renderFiadosLista(); if(btn.dataset.tab==='clientes') renderClientesLista(); if(btn.dataset.tab==='proveedores') renderProveedoresLista(); if(btn.dataset.tab==='reportes') actualizarReportes(); }));
+        document.getElementById('searchProducto')?.addEventListener('input', e=>renderProductosVentas(e.target.value));
+        document.getElementById('agregarZonaBtn')?.addEventListener('click',()=>{ let nueva=document.getElementById('nuevaZona').value.trim(); if(nueva && !db.zones.includes(nueva)) { db.zones.push(nueva); saveAll(); refreshZonesSelect(); } });
+        document.getElementById('concretarVentaBtn')?.addEventListener('click', finalizarVenta);
+        document.getElementById('anularVentaBtn')?.addEventListener('click',()=>{ currentCart=[]; renderCart(); alert("Venta anulada, stock intacto"); });
+        document.getElementById('editarPreciosBtn')?.addEventListener('click',()=>alert("Edita precio en cada línea del carrito"));
+        document.getElementById('guardarProductoBtn')?.addEventListener('click',guardarProducto);
+        document.getElementById('retirarStockBtn')?.addEventListener('click',()=>{ let id=document.getElementById('editProductId').value; if(id) ajustarStock(id, -5); else alert("Selecciona producto editando primero"); });
+        document.getElementById('btnFiltrarCategoria')?.addEventListener('click',()=>renderInventarioLista(document.getElementById('filtroCategoriaInv').value));
+        document.getElementById('btnReporteExcelVentas')?.addEventListener('click',exportarExcelVentas);
+        document.getElementById('descargarInventarioExcelBtn')?.addEventListener('click',exportarInventarioExcel);
+        document.getElementById('descargarExcelFiadosBtn')?.addEventListener('click',exportarFiadosExcel);
+        document.getElementById('btnFiltrarVentas')?.addEventListener('click',()=>actualizarReportes(document.getElementById('filtroFechaReporte').value));
+        document.getElementById('btnReporteInventarioHoy')?.addEventListener('click',()=>exportarInventarioExcel());
+        document.getElementById('filtroClienteNombre')?.addEventListener('input',renderClientesLista);
+        refreshZonesSelect();
+        renderProductosVentas("");
+        renderInventarioLista();
+        renderFiadosLista();
+        renderClientesLista();
+        renderProveedoresLista();
+        updateInvoiceNumberPreview();
+        document.getElementById('facturaManual')?.addEventListener('input', updateInvoiceNumberPreview);
+        if(db.products.length===0){ db.products.push({id:"1",code:"PROD001",name:"Lápiz",categoria:"Utiles",stock:10,price:1.5,foto:null}); db.products.push({id:"2",code:"PROD002",name:"Morral Escolar",categoria:"Morrales",stock:5,price:25.0,foto:null}); saveAll(); renderProductosVentas(""); }
     </script>
 </body>
 </html>
